@@ -1,0 +1,166 @@
+import type { Config } from "tailwindcss";
+
+const config = {
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],
+      },
+      borderRadius: {
+        "3xl": "1.875rem",
+        "4xl": "2.5rem",
+      },
+      boxShadow: {
+        glow: "0 0 0 1px rgba(220,220,220,0.18), 0 22px 80px rgba(0,0,0,0.6)",
+      },
+      colors: {
+        brand: {
+          50: "#f8f8f8",
+          100: "#ededed",
+          200: "#d9d9d9",
+          300: "#c4c4c4",
+          400: "#a9a9a9",
+          500: "#8f8f8f",
+          600: "#737373",
+          700: "#5a5a5a",
+          800: "#404040",
+          900: "#1f1f1f",
+        },
+        rose: {
+          50: "#f7f7f7",
+          100: "#ebebeb",
+          200: "#d6d6d6",
+          300: "#c0c0c0",
+          400: "#a8a8a8",
+          500: "#8e8e8e",
+          600: "#727272",
+          700: "#555555",
+          800: "#3a3a3a",
+          900: "#1e1e1e",
+        },
+        fuchsia: {
+          50: "#f6f6f6",
+          100: "#e9e9e9",
+          200: "#d2d2d2",
+          300: "#bcbcbc",
+          400: "#a4a4a4",
+          500: "#8a8a8a",
+          600: "#6f6f6f",
+          700: "#535353",
+          800: "#383838",
+          900: "#1c1c1c",
+        },
+        sky: {
+          50: "#f5f5f5",
+          100: "#e7e7e7",
+          200: "#d0d0d0",
+          300: "#b8b8b8",
+          400: "#a1a1a1",
+          500: "#878787",
+          600: "#6c6c6c",
+          700: "#515151",
+          800: "#353535",
+          900: "#191919",
+        },
+        amber: {
+          50: "#f5f5f5",
+          100: "#e8e8e8",
+          200: "#d3d3d3",
+          300: "#bcbcbc",
+          400: "#a5a5a5",
+          500: "#8b8b8b",
+          600: "#6f6f6f",
+          700: "#525252",
+          800: "#363636",
+          900: "#1a1a1a",
+        },
+        orange: {
+          50: "#f6f6f6",
+          100: "#e9e9e9",
+          200: "#d4d4d4",
+          300: "#bebebe",
+          400: "#a8a8a8",
+          500: "#8e8e8e",
+          600: "#717171",
+          700: "#555555",
+          800: "#393939",
+          900: "#1d1d1d",
+        },
+        indigo: {
+          50: "#f4f4f4",
+          100: "#e6e6e6",
+          200: "#cfcfcf",
+          300: "#b7b7b7",
+          400: "#9e9e9e",
+          500: "#848484",
+          600: "#696969",
+          700: "#4f4f4f",
+          800: "#333333",
+          900: "#161616",
+        },
+      },
+      backgroundImage: {
+        "gradient-soft":
+          "radial-gradient(circle at 12% 10%, rgba(255,255,255,0.08), transparent 55%), radial-gradient(circle at 88% 0%, rgba(120,120,120,0.08), transparent 45%)",
+      },
+      keyframes: {
+        "fade-up": {
+          "0%": { opacity: "0", transform: "translateY(28px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "pulse-soft": {
+          "0%, 100%": { opacity: "0.2", transform: "scale(1)" },
+          "50%": { opacity: "0.55", transform: "scale(1.08)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-16px)" },
+        },
+        shine: {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(200%)" },
+        },
+        "gradient-orbit": {
+          "0%": { transform: "translate3d(-12%, -8%, 0) scale(1)" },
+          "25%": { transform: "translate3d(10%, -6%, 0) scale(1.08)" },
+          "50%": { transform: "translate3d(16%, 8%, 0) scale(0.96)" },
+          "75%": { transform: "translate3d(-8%, 12%, 0) scale(1.06)" },
+          "100%": { transform: "translate3d(-12%, -8%, 0) scale(1)" },
+        },
+        "pulse-ring": {
+          "0%": { opacity: "0.45", transform: "scale(0.85)" },
+          "70%": { opacity: "0", transform: "scale(1.35)" },
+          "100%": { opacity: "0", transform: "scale(1.55)" },
+        },
+        "tilt-glow": {
+          "0%, 100%": { transform: "rotate(-0.6deg) translateY(0)" },
+          "50%": { transform: "rotate(0.75deg) translateY(-4px)" },
+        },
+        "rise-soft": {
+          "0%": { opacity: "0", transform: "translateY(18px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "shimmer-horizontal": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
+        },
+      },
+      animation: {
+        "fade-up": "fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "pulse-soft": "pulse-soft 16s ease-in-out infinite",
+        float: "float 14s ease-in-out infinite",
+        shine: "shine 6s linear infinite",
+        "gradient-orbit": "gradient-orbit 28s ease-in-out infinite",
+        "pulse-ring": "pulse-ring 18s ease-out infinite",
+        "tilt-glow": "tilt-glow 12s ease-in-out infinite",
+        "float-slow": "float 18s ease-in-out infinite",
+        "rise-soft": "rise-soft 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "shimmer-horizontal": "shimmer-horizontal 2.8s linear infinite",
+      },
+    },
+  },
+  plugins: [],
+} satisfies Config;
+
+export default config;

@@ -1,0 +1,121 @@
+// schema.prisma  (UTF-8, no smart quotes)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Faith {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  services  Service[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Service {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  summary   String
+  details   String
+  faith     Faith?   @relation(fields: [faithId], references: [id])
+  faithId   String?
+  isCore    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Package {
+  id        String   @id @default(cuid())
+  name      String
+  tier      Int
+  blurb     String
+  priceFrom Int?
+  items     PackageItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PackageItem {
+  id        String   @id @default(cuid())
+  label     String
+  package   Package  @relation(fields: [packageId], references: [id])
+  packageId String
+}
+
+model VendorCategory {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  vendors   Vendor[]
+}
+
+model Vendor {
+  id          String         @id @default(cuid())
+  name        String
+  description String
+  phone       String?
+  email       String?
+  website     String?
+  faithTags   String[]
+  category    VendorCategory @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  ratingAvg   Float?
+  verified    Boolean        @default(false)
+  images      VendorImage[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model VendorImage {
+  id       String @id @default(cuid())
+  url      String
+  vendor   Vendor @relation(fields: [vendorId], references: [id])
+  vendorId String
+}
+
+model CSRGroup {
+  id        String   @id @default(cuid())
+  name      String
+  summary   String
+  impact    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Booking {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  faithSlug String
+  packageId String?
+  message   String?
+  urgent    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  urgent    Boolean  @default(false)
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  excerpt   String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

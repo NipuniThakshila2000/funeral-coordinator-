@@ -1,0 +1,298 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --surface-base: #ffffff;
+  --surface-muted: #f5f6f8;
+  --surface-tint: #e9ebef;
+  --ink-900: #121212;
+  --ink-700: #2d2d2d;
+  --ink-500: #5e5e5e;
+}
+
+@layer base {
+  * {
+    @apply border-black/5;
+  }
+
+  html {
+    @apply scroll-smooth;
+    background-color: var(--surface-muted);
+  }
+
+  body {
+    @apply antialiased font-sans;
+    background-color: var(--surface-base);
+    color: #111827;
+    background-image:
+      radial-gradient(circle at 12% 0%, rgba(0, 0, 0, 0.05), transparent 55%),
+      radial-gradient(circle at 88% 8%, rgba(0, 0, 0, 0.04), transparent 55%),
+      radial-gradient(circle at 46% 82%, rgba(0, 0, 0, 0.03), transparent 60%);
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background-color: rgba(0, 0, 0, 0.12);
+    color: #111111;
+  }
+
+  a {
+    @apply text-neutral-900 transition-colors duration-200;
+  }
+
+  button,
+  [role="button"],
+  a {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    backdrop-filter: blur(18px);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(233, 235, 239, 0.96));
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 24px 60px -40px rgba(15, 23, 42, 0.24);
+  }
+
+  .form-field {
+    @apply w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-500 transition focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-black/20;
+    background-color: rgba(255, 255, 255, 0.98);
+  }
+
+  .tag-chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-neutral-100 px-3 py-1 text-xs font-medium uppercase tracking-wide text-neutral-700;
+    background-color: rgba(249, 250, 251, 0.95);
+    border-color: rgba(17, 24, 39, 0.08);
+    color: #374151;
+  }
+
+  .link-underline {
+    background-image: linear-gradient(transparent, transparent), linear-gradient(to right, rgba(17, 17, 17, 0.85), rgba(68, 68, 68, 0.85));
+    background-size: 100% 2px;
+    background-position: 0 calc(100% - 0px), 0 100%;
+    background-repeat: no-repeat;
+  }
+
+  .card-lift {
+    position: relative;
+    transition: transform 420ms cubic-bezier(0.33, 1, 0.68, 1), box-shadow 420ms ease, border-color 420ms ease;
+  }
+
+  .card-lift::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(17, 24, 39, 0.06);
+    opacity: 0;
+    transition: opacity 420ms ease;
+    pointer-events: none;
+  }
+
+  .card-lift:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 28px 72px -34px rgba(15, 23, 42, 0.24);
+  }
+
+  .card-lift:hover::after {
+    opacity: 1;
+  }
+
+  .badge-pulse {
+    position: relative;
+    overflow: visible;
+  }
+
+  .badge-pulse::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: inherit;
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    animation: badge-pulse 3.4s ease-out infinite;
+    pointer-events: none;
+  }
+
+  .cta-pulse {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .cta-pulse::after {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, transparent 60%);
+    opacity: 0;
+    transform: scale(0.8);
+    animation: cta-ripple 4s ease-out infinite;
+    pointer-events: none;
+  }
+
+  .cta-pulse:hover::after {
+    opacity: 0.4;
+  }
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image: linear-gradient(to right, rgba(17, 24, 39, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(17, 24, 39, 0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #111111, #3f3f3f 45%, #6b6b6b 85%);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  .ring-gradient {
+    box-shadow: 0 0 0 1px rgba(17, 24, 39, 0.08), 0 0 36px rgba(15, 23, 42, 0.12);
+  }
+
+  .brand-gradient {
+    background: linear-gradient(135deg, #111111, #2f2f2f 55%, #434343 100%);
+    color: #f9fafb;
+  }
+}
+
+.fade-up {
+  opacity: 0;
+  animation: fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.fade-up-delay-1 {
+  animation-delay: 0.12s;
+}
+
+.fade-up-delay-2 {
+  animation-delay: 0.22s;
+}
+
+.fade-up-delay-3 {
+  animation-delay: 0.32s;
+}
+
+.fade-up-delay-4 {
+  animation-delay: 0.45s;
+}
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes badge-pulse {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@keyframes cta-ripple {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  60% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 16s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 14s ease-in-out infinite;
+}
+
+.shine-line {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-line::after {
+  content: "";
+  position: absolute;
+  inset: -150% -40%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shine 6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up,
+  .fade-up-delay-1,
+  .fade-up-delay-2,
+  .fade-up-delay-3,
+  .fade-up-delay-4,
+  .animate-pulse-soft,
+  .animate-float,
+  .shine-line::after,
+  .badge-pulse::after,
+  .cta-pulse::after {
+    animation: none !important;
+  }
+
+  .card-lift,
+  .cta-pulse,
+  .badge-pulse {
+    transition-duration: 0ms !important;
+  }
+}
