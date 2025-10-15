@@ -57,7 +57,7 @@ const faithSupport = [
     description:
       "Paritta chanting, dana offerings, and 7th / 90th day remembrance ceremonies curated with partner temples.",
     items: ["White attire guidance", "Chanting schedules", "Dana & almsgiving planning"],
-    accent: "from-amber-400/35 to-fuchsia-500/15",
+    accent: "from-amber-400/20 to-fuchsia-500/10",
   },
   {
     slug: "hinduism",
@@ -65,7 +65,7 @@ const faithSupport = [
     description:
       "Purohit coordination, cremation rituals, and river offerings supported with culturally sensitive checklists.",
     items: ["Tilak & prasada preparation", "Day 3 / 10 / 30 observances", "Vegetarian catering partners"],
-    accent: "from-orange-500/35 to-fuchsia-500/20",
+    accent: "from-orange-500/20 to-fuchsia-500/10",
   },
   {
     slug: "christianity",
@@ -73,7 +73,7 @@ const faithSupport = [
     description:
       "Church bookings, choir curation, multimedia tributes, and cemetery logistics managed with pastoral teams.",
     items: ["Order of Service drafting", "Music & AV production", "Wake & memorial meal setup"],
-    accent: "from-sky-500/35 to-indigo-500/20",
+    accent: "from-sky-500/20 to-indigo-500/10",
   },
 ];
 
@@ -279,7 +279,6 @@ export default function HomePage() {
       </section>
 
       <section className="relative overflow-hidden py-20 sm:py-24">
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-neutral-200/40 to-transparent" aria-hidden />
         <div className="mx-auto max-w-6xl px-6">
           <div className="max-w-3xl">
             <span className="tag-chip">Multi-faith expertise</span>
@@ -438,3 +437,4 @@ export default function HomePage() {
     </div>
   );
 }
+

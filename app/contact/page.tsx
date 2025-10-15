@@ -133,13 +133,13 @@ export default function ContactPage() {
             </button>
             <p className="mt-3 text-xs text-neutral-500">Portions of every package fund widows&apos; cooperatives and counselling access.</p>
             {status === "success" && (
-              <p className="flex items-center gap-2 rounded-2xl border border-emerald-400/40 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
+              <p className="flex items-center gap-2 rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
                 <CheckCircle2 size={18} />
                 Thank you - your coordinator will reach out shortly.
               </p>
             )}
             {status === "error" && (
-              <p className="flex items-center gap-2 rounded-2xl border border-neutral-300 bg-neutral-100 px-4 py-3 text-sm text-amber-200">
+              <p className="flex items-center gap-2 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                 There was a problem sending your message. Please try again or call the hotline above.
               </p>
             )}
