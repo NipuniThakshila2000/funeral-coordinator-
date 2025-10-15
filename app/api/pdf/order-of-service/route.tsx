@@ -1,6 +1,6 @@
 import React from "react";
 import { NextResponse } from "next/server";
-import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -201,7 +201,7 @@ export async function POST(request: Request) {
 
   let pdfBuffer: Uint8Array;
   try {
-    pdfBuffer = (await pdf(
+    pdfBuffer = await renderToBuffer(
       <OrderDocument
         faith={payload.faith}
         faithLabel={payload.faithLabel}
@@ -214,7 +214,7 @@ export async function POST(request: Request) {
         notes={payload.notes?.trim()}
         structure={structure}
       />
-    ).toBuffer()) as unknown as Uint8Array;
+    );
   } catch (error) {
     console.error("Failed to render order-of-service PDF", error);
     return NextResponse.json({ error: "pdf_generation_failed" }, { status: 500 });
@@ -230,3 +230,8 @@ export async function POST(request: Request) {
     },
   });
 }
+
+
+
+
+
