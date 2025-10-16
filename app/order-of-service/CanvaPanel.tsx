@@ -90,6 +90,10 @@ export function CanvaPanel() {
   const [status, setStatus] = useState<SessionStatus>("loading");
   const [profileName, setProfileName] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [correlationStatus, setCorrelationStatus] = useState<
+    "idle" | "validating" | "success" | "error"
+  >("idle");
+  const [correlationNotice, setCorrelationNotice] = useState<string | null>(null);
   const [templates, setTemplates] = useState<BrandTemplate[]>([]);
   const [templatesContinuation, setTemplatesContinuation] = useState<string | undefined>();
   const [templatesLoading, setTemplatesLoading] = useState(false);
@@ -239,6 +243,74 @@ export function CanvaPanel() {
       setStatus("error");
       setStatusMessage(reason ? decodeURIComponent(reason) : "Canva connection failed.");
     }
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    try {
+      const url = new URL(window.location.href);
+      const correlationJwt = url.searchParams.get("correlation_jwt");
+
+      if (!correlationJwt) {
+        return () => controller.abort();
+      }
+
+      setCorrelationStatus("validating");
+      setCorrelationNotice("Validating Canva return link...");
+
+      (async () => {
+        try {
+          const res = await fetch("/api/canva/return", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ correlationJwt }),
+            signal: controller.signal,
+          });
+
+          const json = await res.json().catch(() => ({ valid: false }));
+
+          if (!res.ok || !json?.valid) {
+            throw new Error("invalid_correlation_jwt");
+          }
+
+          setCorrelationStatus("success");
+          let notice = "Canva return verified. Restoring your workspace...";
+          if (json.payload && typeof json.payload.correlation_id === "string") {
+            notice = `Canva return verified (ref ${json.payload.correlation_id}). Restoring your workspace...`;
+          }
+          setCorrelationNotice(notice);
+
+          if (json.correlationState && typeof json.correlationState === "object") {
+            const restored = json.correlationState as Record<string, unknown>;
+            const maybeDesignId = restored.designId;
+            if (typeof maybeDesignId === "string" && maybeDesignId.trim()) {
+              setDesignIdInput(maybeDesignId.trim());
+            }
+          }
+        } catch (error) {
+          if ((error as Error)?.name === "AbortError") {
+            return;
+          }
+          console.error("Failed to verify Canva return navigation", error);
+          setCorrelationStatus("error");
+          setCorrelationNotice("We could not validate the Canva return link. Please try reconnecting.");
+        } finally {
+          url.searchParams.delete("correlation_jwt");
+          window.history.replaceState({}, "", url.toString());
+        }
+      })();
+    } catch (error) {
+      console.error("Invalid return navigation URL", error);
+      setCorrelationStatus("error");
+      setCorrelationNotice("We could not parse the Canva return parameters.");
+    }
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   const connectCanva = useCallback(async () => {
@@ -408,6 +480,20 @@ export function CanvaPanel() {
       {statusMessage && (
         <div className="rounded-3xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700">
           {statusMessage}
+        </div>
+      )}
+
+      {correlationStatus !== "idle" && correlationNotice && (
+        <div
+          className={`rounded-3xl border px-4 py-3 text-sm ${
+            correlationStatus === "success"
+              ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+              : correlationStatus === "validating"
+              ? "border-sky-300 bg-sky-50 text-sky-900"
+              : "border-amber-300 bg-amber-50 text-amber-900"
+          }`}
+        >
+          {correlationNotice}
         </div>
       )}
 
