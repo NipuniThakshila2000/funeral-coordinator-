@@ -231,6 +231,7 @@ export function CanvaPanel() {
     if (paramStatus) {
       url.searchParams.delete("canvaStatus");
       url.searchParams.delete("reason");
+      url.searchParams.delete("reasonCode");
       window.history.replaceState({}, "", url.toString());
     }
 
@@ -241,7 +242,13 @@ export function CanvaPanel() {
 
     if (paramStatus === "error") {
       setStatus("error");
-      setStatusMessage(reason ? decodeURIComponent(reason) : "Canva connection failed.");
+      if (reason) {
+        const normalizedReason = decodeURIComponent(reason.replace(/\+/g, " "));
+        console.warn("Canva connection failed", { reason: normalizedReason });
+        setStatusMessage(normalizedReason || "Canva connection failed.");
+      } else {
+        setStatusMessage("Canva connection failed.");
+      }
     }
   }, []);
 
@@ -313,31 +320,14 @@ export function CanvaPanel() {
     };
   }, []);
 
-  const connectCanva = useCallback(async () => {
+  const connectCanva = useCallback(() => {
     setStatusMessage(null);
     try {
-      const res = await fetch("/api/canva/oauth/start", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ returnTo: "/order-of-service" }),
-      });
-
-      if (!res.ok) {
-        setStatus("error");
-        setStatusMessage(
-          res.status === 503
-            ? CANVA_NOT_CONFIGURED_MESSAGE
-            : "Unable to start Canva connection. Please try again."
-        );
-        return;
-      }
-
-      const json = await res.json();
-      window.location.href = json.authorizeUrl;
+      const startUrl = new URL("/api/canva/oauth/start", window.location.origin);
+      startUrl.searchParams.set("returnTo", "/order-of-service");
+      window.location.assign(startUrl.toString());
     } catch (error) {
-      console.error("Failed to start Canva OAuth", error);
+      console.error("Failed to launch Canva OAuth", error);
       setStatus("error");
       setStatusMessage("Unexpected error launching Canva. Please retry.");
     }
@@ -542,6 +532,7 @@ export function CanvaPanel() {
                 <input
                   id="canva-search"
                   type="search"
+                  name="query"
                   className="form-field flex-1"
                   placeholder="e.g. Order of service, remembrance, prayer card"
                   value={query}
@@ -664,6 +655,8 @@ export function CanvaPanel() {
             </p>
           </div>
           <input
+            id="canva-design-id"
+            name="designId"
             className="form-field"
             placeholder="Design ID (e.g. DAGGkcb61HQ)"
             value={designIdInput}
