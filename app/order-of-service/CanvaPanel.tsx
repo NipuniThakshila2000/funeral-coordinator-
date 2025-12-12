@@ -55,6 +55,12 @@ const curatedTemplates: Array<{
   },
 ];
 
+const featuredTemplateLink = {
+  title: "Funeral coordinator order of service template",
+  description: "Quick-start Canva layout requested by your team - click below to open it in a new tab.",
+  url: "https://www.canva.com/design/DAG3QFRYc5k/HkLnbLnPX7-uxbp7bNk41g/edit",
+};
+
 const CANVA_NOT_CONFIGURED_MESSAGE = "Canva integration is not configured. Please contact your administrator to enable Canva features.";
 
 type SessionStatus = "loading" | "connected" | "disconnected" | "error";
@@ -554,6 +560,19 @@ export function CanvaPanel() {
               {templatesError}
             </p>
           )}
+
+          <div className="rounded-2xl border border-neutral-200 bg-white/80 p-4 text-sm text-neutral-700">
+            <p className="text-sm font-semibold text-neutral-900">{featuredTemplateLink.title}</p>
+            <p className="mt-1 text-xs text-neutral-600">{featuredTemplateLink.description}</p>
+            <a
+              href={featuredTemplateLink.url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex items-center gap-2 rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold text-neutral-800 hover:border-neutral-500"
+            >
+              Click to open this Canva template
+            </a>
+          </div>
 
           {status === "connected" && templates.length > 0 && (
             <div className="space-y-4">
