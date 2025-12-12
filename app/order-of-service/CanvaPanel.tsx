@@ -58,7 +58,7 @@ const curatedTemplates: Array<{
 const featuredTemplateLink = {
   title: "Funeral coordinator order of service template",
   description: "Quick-start Canva layout requested by your team - click below to open it in a new tab.",
-  url: "https://www.canva.com/design/DAG3QFRYc5k/HkLnbLnPX7-uxbp7bNk41g/edit",
+  url: "https://www.canva.com/brand/brand-templates/EAG3PxHLqu4",
 };
 
 const CANVA_NOT_CONFIGURED_MESSAGE = "Canva integration is not configured. Please contact your administrator to enable Canva features.";
