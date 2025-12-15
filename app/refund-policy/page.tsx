@@ -50,9 +50,6 @@ export default function RefundPolicyPage() {
         <header className="space-y-4">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-500">Policies</p>
           <h1 className="text-3xl font-semibold text-neutral-900">Refund Policy</h1>
-          <p className="text-sm text-neutral-600">
-            Modelled on the PayHere sample policy and tailored for Funeral Coordinator services delivered by Aramat Holdings (Pvt) Ltd.
-          </p>
         </header>
 
         <article className="space-y-4 rounded-3xl border border-neutral-200 p-6 text-sm leading-6 text-neutral-700">
