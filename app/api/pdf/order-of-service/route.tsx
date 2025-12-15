@@ -58,6 +58,8 @@ type MemorialTemplate = {
   heroVariant: "crest" | "ribbon" | "arch" | "noir";
   pattern: "soft-doves" | "silver-lilies" | "garden-arch" | "night-bloom";
   noteBackground: string;
+  backgroundImage?: string;
+  backgroundImageOpacity?: number;
 };
 
 const memorialTemplates: MemorialTemplate[] = [
@@ -128,6 +130,25 @@ const memorialTemplates: MemorialTemplate[] = [
     heroVariant: "noir",
     pattern: "night-bloom",
     noteBackground: "#111115",
+  },
+  {
+    id: "obsidian-parchment",
+    name: "Obsidian Parchment",
+    background: "#010101",
+    panelBackground: "#0b0b0b",
+    panelBorder: "#4b4b4b",
+    textColor: "#f3f0ea",
+    accent: "#f5d19c",
+    secondary: "#d9c3a2",
+    heroBackground: "#111111",
+    heroBorder: "#5c4d3b",
+    ribbonColor: "#c49a52",
+    doveColor: "#fdf9f3",
+    heroVariant: "noir",
+    pattern: "night-bloom",
+    noteBackground: "#0d0d0d",
+    backgroundImage: "https://media-public.canva.com/Vxv0E/MAFjjxVxv0E/1/s.jpg",
+    backgroundImageOpacity: 0.4,
   },
 ];
 
