@@ -394,7 +394,7 @@ function MemorialDocument({
           ) : null}
         </View>
 
-        <View style={[styles.columnsWrap, isStacked ? { flexDirection: "column" } : null]}>
+        <View style={[styles.columnsWrap, ...(isStacked ? [{ flexDirection: "column" as const }] : [])]}>
           <View
             style={[
               styles.columnCard,
