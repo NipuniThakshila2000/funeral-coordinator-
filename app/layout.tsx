@@ -24,6 +24,9 @@ const supportLinks = [
   { label: "About", href: "/about" },
   { label: "Order of Service", href: "/order-of-service" },
   { label: "Contact", href: "/contact" },
+  { label: "Refund Policy", href: "/refund-policy" },
+  { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Terms & Conditions", href: "/terms-and-conditions" },
 ];
 
 export const metadata = {
@@ -197,7 +200,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
               <div className="mt-10 flex flex-col gap-4 border-t border-neutral-200 pt-6 text-xs text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
                 <p>&copy; {year} Funeral Coordinator. All rights reserved.</p>
-                <div className="flex gap-6">
+                <div className="flex flex-wrap gap-6">
                   <Link href="/about" className="hover:text-neutral-600">
                     About
                   </Link>
@@ -207,6 +210,23 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <Link href="/contact" className="hover:text-neutral-600">
                     Contact
                   </Link>
+                  <Link href="/refund-policy" className="hover:text-neutral-600">
+                    Refund Policy
+                  </Link>
+                  <Link href="/privacy-policy" className="hover:text-neutral-600">
+                    Privacy Policy
+                  </Link>
+                  <Link href="/terms-and-conditions" className="hover:text-neutral-600">
+                    Terms & Conditions
+                  </Link>
+                  <a
+                    href="https://www.aramatholdings.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:text-neutral-600"
+                  >
+                    Aramath Holdings
+                  </a>
                 </div>
               </div>
             </div>
