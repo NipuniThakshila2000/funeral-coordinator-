@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms & Conditions",
-  description: "Legal terms that govern the use of Funeral Coordinator's website and services operated by Aramath Holdings (Pvt) Ltd.",
+  description: "Legal terms that govern the use of Funeral Coordinator's website and services operated by Aramat Holdings (Pvt) Ltd.",
 };
 
 const termsSections = [
@@ -31,7 +31,7 @@ export default function TermsPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-500">Policies</p>
           <h1 className="text-3xl font-semibold text-neutral-900">Terms & Conditions</h1>
           <p className="text-sm text-neutral-600">
-            Operated by Aramath Holdings (Pvt) Ltd, these terms follow the structure of the PayHere sample agreement and reflect how we serve families across Sri Lanka.
+            Operated by Aramat Holdings (Pvt) Ltd, these terms follow the structure of the PayHere sample agreement and reflect how we serve families across Sri Lanka.
           </p>
         </header>
 
