@@ -225,7 +225,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     rel="noreferrer"
                     className="hover:text-neutral-600"
                   >
-                    Aramat Holdings
+                    Aramat Holdings (Holding Company)
                   </a>
                 </div>
               </div>

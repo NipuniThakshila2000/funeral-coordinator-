@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Refund Policy",
   description:
-    "Understand how Funeral Coordinator handles cancellations, downgrades, and refunds for services purchased through Aramat Holdings (Pvt) Ltd.",
+    "Understand how Funeral Coordinator handles cancellations, downgrades, and refunds for services purchased through Aramat Holdings (Holding Company).",
 };
 
 const refundSections = [

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms & Conditions",
-  description: "Legal terms that govern the use of Funeral Coordinator's website and services operated by Aramat Holdings (Pvt) Ltd.",
+  description: "Legal terms that govern the use of Funeral Coordinator's website and services operated by Aramat Holdings (Holding Company).",
 };
 
 const termsSections = [
