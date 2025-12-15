@@ -32,9 +32,6 @@ export default function PrivacyPolicyPage() {
         <header className="space-y-4">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-500">Policies</p>
           <h1 className="text-3xl font-semibold text-neutral-900">Privacy Policy</h1>
-          <p className="text-sm text-neutral-600">
-            This notice is adapted from the PayHere privacy sample and aligns with Sri Lanka's Personal Data Protection Act. Aramat Holdings (Pvt) Ltd operates Funeral Coordinator and acts as the data controller.
-          </p>
         </header>
 
         <article className="space-y-4 rounded-3xl border border-neutral-200 p-6 text-sm leading-6 text-neutral-700">
