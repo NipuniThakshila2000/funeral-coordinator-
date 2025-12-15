@@ -30,9 +30,6 @@ export default function TermsPage() {
         <header className="space-y-4">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-500">Policies</p>
           <h1 className="text-3xl font-semibold text-neutral-900">Terms & Conditions</h1>
-          <p className="text-sm text-neutral-600">
-            Operated by Aramat Holdings (Pvt) Ltd, these terms follow the structure of the PayHere sample agreement and reflect how we serve families across Sri Lanka.
-          </p>
         </header>
 
         <div className="space-y-4 rounded-3xl border border-neutral-200 p-6 text-sm text-neutral-700">
