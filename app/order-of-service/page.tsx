@@ -51,6 +51,11 @@ type FaithDefinition = {
 
 type FormValues = {
   title: string;
+  honoreeName: string;
+  birthDate: string;
+  passingDate: string;
+  tributeSentence: string;
+  photoUrl: string;
   readings: string;
   music: string;
   eulogies: string;
@@ -703,6 +708,11 @@ const builderSteps = [
 
 const emptyFormValues: FormValues = {
   title: "",
+  honoreeName: "",
+  birthDate: "",
+  passingDate: "",
+  tributeSentence: "",
+  photoUrl: "",
   readings: "",
   music: "",
   eulogies: "",
@@ -735,6 +745,7 @@ export default function OrderOfServicePage() {
 
   const applyTemplate = useCallback((template: TemplateDefinition, opts?: { forceTitle?: boolean }) => {
     setFormValues((prev) => ({
+      ...prev,
       title:
         opts?.forceTitle || prev.title.trim().length === 0
           ? template.defaults.title ?? prev.title
@@ -808,6 +819,17 @@ export default function OrderOfServicePage() {
       return;
     }
 
+    if (
+      !formValues.honoreeName.trim() ||
+      !formValues.birthDate.trim() ||
+      !formValues.passingDate.trim() ||
+      !formValues.tributeSentence.trim()
+    ) {
+      setStatus("error");
+      setStatusMessage("Enter the honouree name, birth date, passing date, and a tribute sentence to design the memorial card.");
+      return;
+    }
+
     setLoading(true);
     setStatus("idle");
     setStatusMessage(null);
@@ -820,6 +842,11 @@ export default function OrderOfServicePage() {
         templateName: selectedTemplate.name,
         templateSummary: selectedTemplate.summary,
         title: formValues.title.trim(),
+        honoreeName: formValues.honoreeName.trim(),
+        birthDate: formValues.birthDate.trim(),
+        passingDate: formValues.passingDate.trim(),
+        tributeSentence: formValues.tributeSentence.trim(),
+        photoUrl: formValues.photoUrl.trim(),
         readings: formValues.readings.trim(),
         music: formValues.music.trim(),
         eulogies: formValues.eulogies.trim(),
@@ -968,9 +995,59 @@ export default function OrderOfServicePage() {
 
             <div className="space-y-4">
               <span className="tag-chip">Step 3 - Personalise content</span>
+              <div className="space-y-3 rounded-3xl border border-neutral-200 bg-white p-5">
+                <p className="text-sm font-semibold text-neutral-900">Memorial card details</p>
+                <p className="text-xs text-neutral-600">
+                  These fields power the ceremonial poster and PDF header. Families can later swap the portrait or edit
+                  wording.
+                </p>
+                <input
+                  name="honoreeName"
+                  placeholder="Full name for the memorial card"
+                  className="form-field"
+                  value={formValues.honoreeName}
+                  onChange={handleFieldChange("honoreeName")}
+                  required
+                />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input
+                    type="date"
+                    name="birthDate"
+                    placeholder="Date of birth"
+                    className="form-field"
+                    value={formValues.birthDate}
+                    onChange={handleFieldChange("birthDate")}
+                    required
+                  />
+                  <input
+                    type="date"
+                    name="passingDate"
+                    placeholder="Date of passing"
+                    className="form-field"
+                    value={formValues.passingDate}
+                    onChange={handleFieldChange("passingDate")}
+                    required
+                  />
+                </div>
+                <input
+                  name="tributeSentence"
+                  placeholder="Short tribute sentence (e.g., 'Forever in our hearts')"
+                  className="form-field"
+                  value={formValues.tributeSentence}
+                  onChange={handleFieldChange("tributeSentence")}
+                  required
+                />
+                <input
+                  name="photoUrl"
+                  placeholder="Portrait URL (Google Drive, CDN, etc.)"
+                  className="form-field"
+                  value={formValues.photoUrl}
+                  onChange={handleFieldChange("photoUrl")}
+                />
+              </div>
               <input
                 name="title"
-                placeholder="Service title (e.g., In Loving Memory of...)"
+                placeholder="Programme title (e.g., Order of Service for...)"
                 className="form-field"
                 value={formValues.title}
                 onChange={handleFieldChange("title")}

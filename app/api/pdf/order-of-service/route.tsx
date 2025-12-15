@@ -1,6 +1,18 @@
 import React from "react";
 import { NextResponse } from "next/server";
-import { Document, Page, Text, View, StyleSheet, renderToBuffer, Svg, Path, Circle } from "@react-pdf/renderer";
+/* eslint-disable jsx-a11y/alt-text */
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  renderToBuffer,
+  Svg,
+  Path,
+  Circle,
+  Image,
+} from "@react-pdf/renderer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,6 +35,11 @@ type PdfPayload = {
   eulogies?: string;
   notes?: string;
   structure?: TemplateSection[];
+  honoreeName?: string;
+  birthDate?: string;
+  passingDate?: string;
+  tributeSentence?: string;
+  photoUrl?: string;
 };
 
 type MemorialTemplate = {
@@ -309,19 +326,35 @@ function DecorativeLayer({ template }: { template: MemorialTemplate }) {
 
 type HeroSectionProps = {
   template: MemorialTemplate;
-  title: string;
-  subtitle: string;
-  summary: string;
+  displayName: string;
+  datesLine: string;
+  epitaph: string;
+  ceremonyTitle: string;
+  photoUrl?: string;
 };
 
-function HeroSection({ template, title, subtitle, summary }: HeroSectionProps) {
-  const placeholderInitial = title.replace(/[^A-Za-z]/g, " ").trim().split(/\s+/).slice(-1)[0]?.[0] ?? "F";
-
-  const portraitCircle = (
-    <View style={[styles.heroCircle, { borderColor: template.accent, backgroundColor: template.doveColor }] }>
-      <Text style={{ fontSize: 36, fontWeight: 600, color: template.accent }}>{placeholderInitial}</Text>
+function HeroSection({ template, displayName, datesLine, epitaph, ceremonyTitle, photoUrl }: HeroSectionProps) {
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "FC";
+  const picture = photoUrl?.trim().length ? photoUrl.trim() : null;
+  const portrait = picture ? (
+    <Image
+      src={picture}
+      style={{ width: 128, height: 128, borderRadius: 64, objectFit: "cover", borderWidth: 3, borderColor: template.heroBorder }}
+    />
+  ) : (
+    <View style={[styles.heroCircle, { borderColor: template.accent, backgroundColor: template.doveColor }]}>
+      <Text style={{ fontSize: 36, fontWeight: 600, color: template.accent }}>{initials}</Text>
     </View>
   );
+
+  const subtitle = datesLine || ceremonyTitle;
+  const summary = epitaph || ceremonyTitle;
 
   switch (template.heroVariant) {
     case "crest":
@@ -329,15 +362,15 @@ function HeroSection({ template, title, subtitle, summary }: HeroSectionProps) {
         <View>
           <Text style={[styles.heroScript, { color: template.secondary }]}>In loving memory of</Text>
           <View style={{ marginTop: 14, alignItems: "center" }}>
-            {portraitCircle}
+            {portrait}
             <Svg style={{ marginTop: -30 }} width="160" height="90" viewBox="0 0 200 110">
               <Path d="M20 80 C40 30 70 30 100 70 C130 30 160 30 180 80" stroke={template.heroBorder} strokeWidth={5} fill="none" />
               <Path d="M20 82 C40 60 70 60 90 78" stroke={template.accent} strokeWidth={3} fill="none" />
               <Path d="M110 78 C130 60 160 60 180 82" stroke={template.accent} strokeWidth={3} fill="none" />
             </Svg>
           </View>
-          <Text style={[styles.heroTitle, { color: template.textColor }]}>{title}</Text>
-          <Text style={[styles.heroSubtitle, { color: template.secondary }]}>{subtitle}</Text>
+          <Text style={[styles.heroTitle, { color: template.textColor }]}>{displayName}</Text>
+          {subtitle ? <Text style={[styles.heroSubtitle, { color: template.secondary }]}>{subtitle}</Text> : null}
           <Text style={[styles.heroSummary, { color: template.textColor }]}>{summary}</Text>
           <Text style={[styles.heroBadge, { backgroundColor: template.ribbonColor, color: template.background }]}>Rest in Peace</Text>
         </View>
@@ -347,13 +380,10 @@ function HeroSection({ template, title, subtitle, summary }: HeroSectionProps) {
         <View>
           <Text style={[styles.heroScript, { color: template.accent }]}>In loving memory</Text>
           <View style={styles.heroRow}>
-            <Svg width="90" height="90" viewBox="0 0 100 100">
-              <Circle cx="50" cy="50" r="48" stroke={template.heroBorder} strokeWidth="4" fill={template.doveColor} />
-              <Path d="M15 45 C35 5 65 5 85 45" stroke={template.accent} strokeWidth="5" fill="none" />
-            </Svg>
+            {portrait}
             <View>
-              <Text style={[styles.heroTitle, { color: template.textColor }]}>{title}</Text>
-              <Text style={[styles.heroSubtitle, { color: template.secondary }]}>{subtitle}</Text>
+              <Text style={[styles.heroTitle, { color: template.textColor }]}>{displayName}</Text>
+              {subtitle ? <Text style={[styles.heroSubtitle, { color: template.secondary }]}>{subtitle}</Text> : null}
             </View>
           </View>
           <View
@@ -381,8 +411,9 @@ function HeroSection({ template, title, subtitle, summary }: HeroSectionProps) {
               <Path d="M50 190 Q100 60 150 190" stroke={template.secondary} strokeWidth="3" fill="none" />
               <Circle cx="100" cy="70" r="38" fill={template.heroBorder} opacity="0.45" />
             </Svg>
-            <Text style={[styles.heroTitle, { color: template.textColor }]}>{title}</Text>
-            <Text style={[styles.heroSubtitle, { color: template.secondary }]}>{subtitle}</Text>
+            {portrait}
+            <Text style={[styles.heroTitle, { color: template.textColor, marginTop: 12 }]}>{displayName}</Text>
+            {subtitle ? <Text style={[styles.heroSubtitle, { color: template.secondary }]}>{subtitle}</Text> : null}
           </View>
           <Text style={[styles.heroSummary, { color: template.textColor }]}>{summary}</Text>
         </View>
@@ -393,14 +424,15 @@ function HeroSection({ template, title, subtitle, summary }: HeroSectionProps) {
         <View>
           <Text style={[styles.heroScript, { color: template.secondary }]}>Forever cherished</Text>
           <View style={{ marginTop: 12, alignItems: "center" }}>
+            {portrait}
             <Svg width="200" height="120" viewBox="0 0 200 120">
               <Path d="M20 90 C60 10 140 10 180 90" stroke={template.secondary} strokeWidth="5" fill="none" />
               <Circle cx="60" cy="40" r="26" fill={template.doveColor} opacity="0.4" />
               <Circle cx="140" cy="32" r="22" fill={template.doveColor} opacity="0.3" />
             </Svg>
           </View>
-          <Text style={[styles.heroTitle, { color: template.textColor }]}>{title}</Text>
-          <Text style={[styles.heroSubtitle, { color: template.secondary }]}>{subtitle}</Text>
+          <Text style={[styles.heroTitle, { color: template.textColor }]}>{displayName}</Text>
+          {subtitle ? <Text style={[styles.heroSubtitle, { color: template.secondary }]}>{subtitle}</Text> : null}
           <Text style={[styles.heroSummary, { color: template.textColor }]}>{summary}</Text>
           <View style={{ marginTop: 12, alignItems: "center" }}>
             <View style={{ borderTopWidth: 1, borderColor: template.secondary, width: 160 }} />
@@ -408,6 +440,55 @@ function HeroSection({ template, title, subtitle, summary }: HeroSectionProps) {
         </View>
       );
   }
+}
+
+type PosterPageProps = {
+  template: MemorialTemplate;
+  displayName: string;
+  datesLine: string;
+  epitaph: string;
+  ceremonyTitle: string;
+  photoUrl?: string;
+};
+
+function PosterPage({ template, displayName, datesLine, epitaph, ceremonyTitle, photoUrl }: PosterPageProps) {
+  const initials = displayName?.[0]?.toUpperCase() ?? "F";
+  const portrait = photoUrl?.trim().length ? (
+    <Image
+      src={photoUrl.trim()}
+      style={{ width: 220, height: 220, borderRadius: 110, objectFit: "cover", borderWidth: 4, borderColor: template.heroBorder }}
+    />
+  ) : (
+    <View
+      style={{
+        width: 220,
+        height: 220,
+        borderRadius: 110,
+        borderWidth: 4,
+        borderColor: template.heroBorder,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: template.doveColor,
+      }}
+    >
+      <Text style={{ fontSize: 72, fontWeight: 600, color: template.accent }}>{initials}</Text>
+    </View>
+  );
+
+  return (
+    <Page size="A4" style={[styles.page, { backgroundColor: template.background, paddingTop: 80, paddingBottom: 60 }]}>
+      <DecorativeLayer template={template} />
+      <View style={{ alignItems: "center", textAlign: "center" }}>
+        <Text style={[styles.heroScript, { color: template.secondary }]}>In loving memory of</Text>
+        <View style={{ marginTop: 24 }}>{portrait}</View>
+        <Text style={[styles.heroTitle, { color: template.textColor, marginTop: 24 }]}>{displayName}</Text>
+        {datesLine ? <Text style={[styles.heroSubtitle, { color: template.secondary }]}>{datesLine}</Text> : null}
+        <Text style={[styles.heroSummary, { color: template.textColor, marginTop: 10 }]}>{epitaph}</Text>
+        <View style={{ marginTop: 18, borderTopWidth: 1, borderColor: template.panelBorder, width: 200 }} />
+        <Text style={{ marginTop: 12, fontSize: 11, color: template.secondary }}>{ceremonyTitle}</Text>
+      </View>
+    </Page>
+  );
 }
 
 type OrderDocumentProps = {
@@ -424,6 +505,11 @@ type OrderDocumentProps = {
     eulogies: string[];
   };
   template: MemorialTemplate;
+  honoreeName?: string;
+  birthDate?: string;
+  passingDate?: string;
+  tributeSentence?: string;
+  photoUrl?: string;
 };
 
 function MemorialDocument({
@@ -436,28 +522,45 @@ function MemorialDocument({
   structure,
   lists,
   template,
+  honoreeName,
+  birthDate,
+  passingDate,
+  tributeSentence,
+  photoUrl,
 }: OrderDocumentProps) {
-  const subtitle = templateName ?? `${faithLabel ?? faith} service guide`;
-  const summary = templateSummary ?? "Curated ceremony order for family, clergy, and friends.";
-  const noteLine = notes?.split(/\r?\n/).find((line) => line.trim().length > 0) ?? "Coordinators can add livestream, CSR, or ritual reminders here.";
-  const isStacked = template.heroVariant === "arch";
-  const columnStyles = isStacked
-    ? [styles.columnsWrap, { flexDirection: "column" as const }]
-    : [styles.columnsWrap];
+  const displayName = honoreeName?.trim().length ? honoreeName.trim() : title;
+  const datesLine = [birthDate?.trim(), passingDate?.trim()].filter(Boolean).join(" ? ");
+  const epitaph =
+    tributeSentence?.trim().length ? tributeSentence.trim() : templateSummary ?? "Those we love remain in our hearts.";
+  const ceremonyTitle = templateName ?? `${faithLabel ?? faith} service`;
+  const noteLine =
+    notes?.split(/\r?\n/).find((line) => line.trim().length > 0) ??
+    "Coordinators can add livestream, CSR impact, or ritual reminders here.";
+  const columnStyles =
+    template.heroVariant === "arch"
+      ? [styles.columnsWrap, { flexDirection: "column" as const }]
+      : [styles.columnsWrap];
 
   return (
     <Document>
       <Page size="A4" style={[styles.page, { backgroundColor: template.background }]}>
         <DecorativeLayer template={template} />
         <View style={[styles.heroWrapper, { backgroundColor: template.heroBackground, borderColor: template.heroBorder }]}>
-          <HeroSection template={template} title={title} subtitle={subtitle} summary={summary} />
+          <HeroSection
+            template={template}
+            displayName={displayName}
+            datesLine={datesLine}
+            epitaph={epitaph}
+            ceremonyTitle={ceremonyTitle}
+            photoUrl={photoUrl}
+          />
         </View>
 
         <View style={columnStyles}>
           <View
             style={[
               styles.columnCard,
-              { backgroundColor: template.panelBackground, borderColor: template.panelBorder, marginBottom: isStacked ? 12 : 0 },
+              { backgroundColor: template.panelBackground, borderColor: template.panelBorder, marginBottom: template.heroVariant === "arch" ? 12 : 0 },
             ]}
           >
             <Text style={[styles.columnTitle, { color: template.accent }]}>Ceremony flow</Text>
@@ -511,6 +614,15 @@ function MemorialDocument({
           <Text style={[styles.noteText, { color: template.textColor }]}>{noteLine}</Text>
         </View>
       </Page>
+
+      <PosterPage
+        template={template}
+        displayName={displayName}
+        datesLine={datesLine}
+        epitaph={epitaph}
+        ceremonyTitle={ceremonyTitle}
+        photoUrl={photoUrl}
+      />
     </Document>
   );
 }
@@ -568,6 +680,11 @@ export async function POST(request: Request) {
         structure={structure}
         lists={lists}
         template={template}
+        honoreeName={payload.honoreeName?.trim()}
+        birthDate={payload.birthDate?.trim()}
+        passingDate={payload.passingDate?.trim()}
+        tributeSentence={payload.tributeSentence?.trim()}
+        photoUrl={payload.photoUrl?.trim()}
       />
     );
   } catch (error) {
