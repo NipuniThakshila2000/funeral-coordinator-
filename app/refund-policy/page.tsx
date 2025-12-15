@@ -92,7 +92,7 @@ export default function RefundPolicyPage() {
         <div className="rounded-3xl border border-emerald-200 bg-emerald-50/80 p-6 text-sm text-neutral-700">
           <h3 className="text-base font-semibold text-neutral-900">Need help?</h3>
           <p className="mt-2">
-            Email <a href="mailto:care@funeralcoordinator.lk" className="underline">care@funeralcoordinator.lk</a> with the subject line "Refund Request" or call our hotline above. We document every case and share a written calculation once the refund is processed.
+            Email <a href="mailto:care@funeralcoordinator.lk" className="underline">care@funeralcoordinator.lk</a> with the subject line &ldquo;Refund Request&rdquo; or call our hotline above. We document every case and share a written calculation once the refund is processed.
           </p>
           <p className="mt-4 text-xs text-neutral-500">
             Policy last updated on {new Date().toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" })}.
