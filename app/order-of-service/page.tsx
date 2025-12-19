@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import {
@@ -11,18 +12,45 @@ import {
 } from "react";
 import { CanvaPanel } from "./CanvaPanel";
 import {
+  MemorialCardPreview,
+  type MemorialCardPreviewHandle,
+  SCRIPT_FONT_OPTIONS,
+  SERIF_FONT_OPTIONS,
+  SANS_FONT_OPTIONS,
+  type FontSelection,
+} from "./MemorialCardPreview";
+import {
+  getDefaultDesignForFaith,
+  getMemorialDesignByVariant,
+  memorialCardDesignsByFaith,
+  type FaithKey,
+  type MemorialCardVariant,
+} from "./memorialCardDesigns";
+import {
+  ArrowDown,
   ArrowRight,
+  ArrowUp,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   FileDown,
+  GripVertical,
   Layers,
+  Plus,
   RefreshCw,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 
 type TemplateSection = {
   title: string;
   description?: string;
   items?: string[];
+  marginTop?: number;
+  marginBottom?: number;
+  padding?: number;
+  gap?: number;
+  fontScale?: number;
 };
 
 type TemplateDefaults = {
@@ -47,6 +75,15 @@ type FaithDefinition = {
   description: string;
   accent: string;
   templates: TemplateDefinition[];
+};
+
+type CardEditorSettings = {
+  background: string;
+  text: string;
+  accent: string;
+  fontScale: number;
+  lineHeight: number;
+  fonts: FontSelection;
 };
 
 type FormValues = {
@@ -718,20 +755,80 @@ const emptyFormValues: FormValues = {
   eulogies: "",
   notes: "",
 };
+
+const defaultFontSelection: FontSelection = {
+  script: (SCRIPT_FONT_OPTIONS[0]?.value ?? 'great-vibes') as FontSelection['script'],
+  serif: (SERIF_FONT_OPTIONS[0]?.value ?? 'playfair') as FontSelection['serif'],
+  sans: (SANS_FONT_OPTIONS[0]?.value ?? 'inter') as FontSelection['sans'],
+};
+
+const defaultCardEditorSettings: CardEditorSettings = {
+  background: '#ffffff',
+  text: '#111111',
+  accent: '#d6b56b',
+  fontScale: 1,
+  lineHeight: 1.4,
+  fonts: defaultFontSelection,
+};
+
+const defaultSectionLayout: Required<Pick<TemplateSection, 'marginTop' | 'marginBottom' | 'padding' | 'gap' | 'fontScale'>> = {
+  marginTop: 8,
+  marginBottom: 12,
+  padding: 12,
+  gap: 6,
+  fontScale: 1,
+};
+
+type SectionLayoutField = keyof typeof defaultSectionLayout;
+
+function normalizeSection(section: TemplateSection): TemplateSection {
+  const getNumber = (value: number | undefined, fallback: number) =>
+    typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+
+  return {
+    ...section,
+    items: section.items ? [...section.items] : undefined,
+    marginTop: getNumber(section.marginTop, defaultSectionLayout.marginTop),
+    marginBottom: getNumber(section.marginBottom, defaultSectionLayout.marginBottom),
+    padding: getNumber(section.padding, defaultSectionLayout.padding),
+    gap: getNumber(section.gap, defaultSectionLayout.gap),
+    fontScale: getNumber(section.fontScale, defaultSectionLayout.fontScale),
+  };
+}
+
+function getSectionLayout(section: TemplateSection) {
+  return {
+    marginTop: typeof section.marginTop === 'number' ? section.marginTop : defaultSectionLayout.marginTop,
+    marginBottom: typeof section.marginBottom === 'number' ? section.marginBottom : defaultSectionLayout.marginBottom,
+    padding: typeof section.padding === 'number' ? section.padding : defaultSectionLayout.padding,
+    gap: typeof section.gap === 'number' ? section.gap : defaultSectionLayout.gap,
+    fontScale: typeof section.fontScale === 'number' ? section.fontScale : defaultSectionLayout.fontScale,
+  } satisfies typeof defaultSectionLayout;
+}
 export default function OrderOfServicePage() {
   const faithEntries = useMemo(
-    () => Object.entries(templateCatalog) as Array<[keyof typeof templateCatalog, FaithDefinition]>,
+    () => Object.entries(templateCatalog) as Array<[FaithKey, FaithDefinition]>,
     []
   );
 
-  const [selectedFaith, setSelectedFaith] = useState<keyof typeof templateCatalog | "">("");
+  const [selectedFaith, setSelectedFaith] = useState<FaithKey | "">("");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<FormValues>({ ...emptyFormValues });
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [cardDownloadStatus, setCardDownloadStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [cardDownloadMessage, setCardDownloadMessage] = useState<string | null>(null);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const [selectedMemorialVariant, setSelectedMemorialVariant] = useState<MemorialCardVariant | null>(null);
+  const [cardEditorSettings, setCardEditorSettings] = useState<CardEditorSettings>({ ...defaultCardEditorSettings, fonts: { ...defaultCardEditorSettings.fonts } });
+  const [structureSections, setStructureSections] = useState<TemplateSection[]>([]);
+  const [structureEditorOpen, setStructureEditorOpen] = useState(true);
+  const [activeStructureIndex, setActiveStructureIndex] = useState<number | null>(null);
+
 
   const previousFaithRef = useRef<string | "">("");
+  const memorialPreviewRef = useRef<MemorialCardPreviewHandle | null>(null);
 
   const selectedFaithDefinition = selectedFaith ? templateCatalog[selectedFaith] : null;
   const selectedTemplate = useMemo(() => {
@@ -756,6 +853,44 @@ export default function OrderOfServicePage() {
       notes: template.defaults.notes ?? prev.notes,
     }));
   }, []);
+
+  useEffect(() => {
+    if (!selectedTemplate) {
+      setStructureSections([]);
+      return;
+    }
+    setStructureSections(selectedTemplate.structure.map((section) => normalizeSection(section)));
+  }, [selectedTemplate]);
+
+  useEffect(() => {
+    if (!selectedFaith) {
+      setSelectedMemorialVariant(null);
+      return;
+    }
+    const designs = selectedFaith ? memorialCardDesignsByFaith[selectedFaith as FaithKey] : [];
+    setSelectedMemorialVariant((prev) => {
+      if (prev && designs.some((design) => design.id === prev)) {
+        return prev;
+      }
+      return designs?.[0]?.id ?? getDefaultDesignForFaith(selectedFaith);
+    });
+  }, [selectedFaith]);
+
+  useEffect(() => {
+    if (!selectedMemorialVariant) {
+      return;
+    }
+    const design = getMemorialDesignByVariant(selectedMemorialVariant);
+    if (!design) {
+      return;
+    }
+    setCardEditorSettings((prev) => ({
+      ...prev,
+      background: design.defaultTheme.background,
+      text: design.defaultTheme.text,
+      accent: design.defaultTheme.accent,
+    }));
+  }, [selectedMemorialVariant]);
 
   useEffect(() => {
     if (!selectedFaith) {
@@ -791,6 +926,150 @@ export default function OrderOfServicePage() {
       setFormValues((prev) => ({ ...prev, [field]: value }));
     };
 
+  const toggleStructureEditor = () => setStructureEditorOpen((prev) => !prev);
+
+  const toggleSectionEditor = (index: number) => {
+    setActiveStructureIndex((prev) => (prev === index ? null : index));
+  };
+
+  const handlePhotoUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setPhotoUploadError("Please choose an image file (JPG or PNG).");
+      event.target.value = "";
+      return;
+    }
+    const maxSizeBytes = 6 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      setPhotoUploadError("Please select an image smaller than 6MB.");
+      event.target.value = "";
+      return;
+    }
+    setPhotoUploadError(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setFormValues((prev) => ({ ...prev, photoUrl: reader.result as string }));
+      } else {
+        setPhotoUploadError("We couldn't read that file. Try another image.");
+      }
+    };
+    reader.onerror = () => {
+      setPhotoUploadError("We couldn't read that file. Try another image.");
+    };
+    reader.readAsDataURL(file);
+  }, [setFormValues]);
+
+  const handleCardThemeChange = (field: keyof Pick<CardEditorSettings, 'background' | 'text' | 'accent'>) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const { value } = event.target;
+      setCardEditorSettings((prev) => ({ ...prev, [field]: value }));
+    };
+
+  const handleFontSelectionChange = (field: keyof FontSelection) =>
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const { value } = event.target;
+      setCardEditorSettings((prev) => ({
+        ...prev,
+        fonts: { ...prev.fonts, [field]: value as FontSelection[keyof FontSelection] },
+      }));
+    };
+
+  const handleFontScaleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const next = Number(event.target.value) / 100;
+    setCardEditorSettings((prev) => ({ ...prev, fontScale: next }));
+  };
+
+  const updateSectionLayoutValue = (index: number, field: SectionLayoutField, value: number) => {
+    setStructureSections((prev) => {
+      const next = [...prev];
+      if (!next[index]) {
+        return prev;
+      }
+      const numericValue = Number.isFinite(value) ? value : defaultSectionLayout[field];
+      next[index] = { ...next[index], [field]: numericValue };
+      return next;
+    });
+  };
+
+  const handleSectionNumberChange = (index: number, field: Exclude<SectionLayoutField, 'fontScale'>) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      updateSectionLayoutValue(index, field, Number(event.target.value));
+    };
+
+  const handleSectionFontScaleChange = (index: number) => (event: ChangeEvent<HTMLInputElement>) => {
+    const percentValue = Number(event.target.value);
+    updateSectionLayoutValue(index, 'fontScale', percentValue / 100);
+  };
+
+  const handleStructureFieldChange = (index: number, field: keyof TemplateSection) =>
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { value } = event.target;
+      setStructureSections((prev) => {
+        const next = [...prev];
+        const updated = { ...next[index] };
+        if (field === "items") {
+          updated.items = value
+            .split("\n")
+            .map((entry) => entry.trim())
+            .filter((entry) => entry.length > 0);
+        } else {
+          (updated as Record<string, unknown>)[field] = value;
+        }
+        next[index] = updated;
+        return next;
+      });
+    };
+
+  const moveStructureSection = (index: number, direction: "up" | "down") => {
+    setStructureSections((prev) => {
+      const next = [...prev];
+      const swapWith = direction === "up" ? index - 1 : index + 1;
+      if (swapWith < 0 || swapWith >= next.length) {
+        return prev;
+      }
+      const temp = next[swapWith];
+      next[swapWith] = next[index];
+      next[index] = temp;
+      return next;
+    });
+  };
+
+  const addStructureSection = () => {
+    setStructureSections((prev) => [
+      ...prev,
+      normalizeSection({
+        title: "New section",
+        description: "",
+        items: [],
+      }),
+    ]);
+  };
+
+  const removeStructureSection = (index: number) => {
+    setStructureSections((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
+  };
+
+  const resetStructureToTemplate = () => {
+    if (!selectedTemplate) {
+      return;
+    }
+    setStructureSections(selectedTemplate.structure.map((section) => normalizeSection(section)));
+  };
+
+  const handleLineHeightChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const next = Number(event.target.value) / 100;
+    setCardEditorSettings((prev) => ({ ...prev, lineHeight: next }));
+  };
+
+  const handleClearPhoto = useCallback(() => {
+    setFormValues((prev) => ({ ...prev, photoUrl: "" }));
+    setPhotoUploadError(null);
+  }, [setFormValues]);
+
   const handleTemplateSelection = (template: TemplateDefinition) => {
     setSelectedTemplateId(template.id);
     applyTemplate(template);
@@ -798,11 +1077,38 @@ export default function OrderOfServicePage() {
     setStatusMessage(null);
   };
 
-  const handleFaithSelection = (faithKey: keyof typeof templateCatalog) => {
+  const handleFaithSelection = (faithKey: FaithKey | "") => {
     setSelectedFaith(faithKey);
+    setSelectedMemorialVariant(faithKey ? getDefaultDesignForFaith(faithKey) : null);
     setStatus("idle");
     setStatusMessage(null);
   };
+
+  const downloadMemorialCard = useCallback(async () => {
+    if (!selectedMemorialVariant) {
+      setCardDownloadStatus("error");
+      setCardDownloadMessage("Select a memorial card template to download it.");
+      return;
+    }
+
+    if (!memorialPreviewRef.current) {
+      setCardDownloadMessage("The preview is not ready yet.");
+      setCardDownloadStatus("error");
+      return;
+    }
+
+    try {
+      setCardDownloadStatus("loading");
+      setCardDownloadMessage("Preparing a 665x960 JPG...");
+      await memorialPreviewRef.current.download();
+      setCardDownloadStatus("success");
+      setCardDownloadMessage("Downloaded the memorial card. Check your downloads folder.");
+    } catch (error) {
+      console.error(error);
+      setCardDownloadStatus("error");
+      setCardDownloadMessage("We could not export the card. Try again after confirming the portrait URL.");
+    }
+  }, [selectedMemorialVariant]);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -851,7 +1157,7 @@ export default function OrderOfServicePage() {
         music: formValues.music.trim(),
         eulogies: formValues.eulogies.trim(),
         notes: formValues.notes.trim(),
-        structure: selectedTemplate.structure,
+        structure: structureSections,
       };
 
       const response = await fetch("/api/pdf/order-of-service", {
@@ -885,7 +1191,7 @@ export default function OrderOfServicePage() {
   };
   return (
     <div className="space-y-16 px-6 py-16">
-      <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="mx-auto grid max-w-4xl gap-00">
         <section className="space-y-6">
           <span className="tag-chip">Order of service</span>
           <h1 className="text-balance text-4xl font-semibold text-neutral-900 sm:text-5xl">
@@ -916,13 +1222,13 @@ export default function OrderOfServicePage() {
           </div>
         </section>
 
-        <section className="glass-panel relative overflow-hidden rounded-[2.5rem] border border-neutral-200 bg-white p-8 shadow-glow">
+        <section className="glass-panel relative overflow-hidden flex flex-col items-center rounded-[2.5rem] border border-neutral-200 bg-white p-8 shadow-glow">
           <span className="absolute -left-16 top-0 h-48 w-48 rounded-full bg-black/10 blur-3xl" aria-hidden />
           <span className="absolute -right-20 bottom-0 h-48 w-48 rounded-full bg-black/5 blur-3xl" aria-hidden />
           <form onSubmit={submit} className="relative space-y-8 text-sm text-neutral-700">
             <fieldset className="space-y-4" aria-label="Faith tradition">
               <span className="tag-chip">Step 1 - Faith tradition</span>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-1 sm:grid-cols-2">
                 {faithEntries.map(([key, definition]) => (
                   <label
                     key={key}
@@ -995,128 +1301,555 @@ export default function OrderOfServicePage() {
 
             <div className="space-y-4">
               <span className="tag-chip">Step 3 - Personalise content</span>
-              <div className="space-y-3 rounded-3xl border border-neutral-200 bg-white p-5">
-                <p className="text-sm font-semibold text-neutral-900">Memorial card details</p>
-                <p className="text-xs text-neutral-600">
-                  These fields power the ceremonial poster and PDF header. Families can later swap the portrait or edit
-                  wording.
-                </p>
-                <input
-                  name="honoreeName"
-                  placeholder="Full name for the memorial card"
-                  className="form-field"
-                  value={formValues.honoreeName}
-                  onChange={handleFieldChange("honoreeName")}
-                  required
-                />
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <input
-                    type="date"
-                    name="birthDate"
-                    placeholder="Date of birth"
-                    className="form-field"
-                    value={formValues.birthDate}
-                    onChange={handleFieldChange("birthDate")}
-                    required
-                  />
-                  <input
-                    type="date"
-                    name="passingDate"
-                    placeholder="Date of passing"
-                    className="form-field"
-                    value={formValues.passingDate}
-                    onChange={handleFieldChange("passingDate")}
-                    required
-                  />
+              <div className="space-y-5 rounded-[2.5rem] border border-neutral-200 bg-white/95 p-5 shadow-sm">
+                <div className="space-y-5">
+                  <div className="space-y-3 rounded-3xl border border-neutral-200 bg-white p-5">
+                    <p className="text-sm font-semibold text-neutral-900">Memorial card details</p>
+                    <p className="text-xs text-neutral-600">
+                      These fields power the ceremonial poster and PDF header. Families can later swap the portrait or edit
+                      wording.
+                    </p>
+                    <input
+                      name="honoreeName"
+                      placeholder="Full name for the memorial card"
+                      className="form-field"
+                      value={formValues.honoreeName}
+                      onChange={handleFieldChange("honoreeName")}
+                      required
+                    />
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <input
+                        type="date"
+                        name="birthDate"
+                        placeholder="Date of birth"
+                        className="form-field"
+                        value={formValues.birthDate}
+                        onChange={handleFieldChange("birthDate")}
+                        required
+                      />
+                      <input
+                        type="date"
+                        name="passingDate"
+                        placeholder="Date of passing"
+                        className="form-field"
+                        value={formValues.passingDate}
+                        onChange={handleFieldChange("passingDate")}
+                        required
+                      />
+                    </div>
+                    <input
+                      name="tributeSentence"
+                      placeholder="Short tribute sentence (e.g., 'Forever in our hearts')"
+                      className="form-field"
+                      value={formValues.tributeSentence}
+                      onChange={handleFieldChange("tributeSentence")}
+                      required
+                    />
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-neutral-900">Portrait photo</p>
+                        {formValues.photoUrl ? (
+                          <button
+                            type="button"
+                            onClick={handleClearPhoto}
+                            className="text-xs font-medium text-rose-600 hover:text-rose-700"
+                          >
+                            Remove photo
+                          </button>
+                        ) : null}
+                      </div>
+                      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-neutral-300 bg-neutral-50/70 p-4 text-center text-xs font-medium text-neutral-600 hover:border-neutral-400">
+                        <input type="file" accept="image/*" className="sr-only" onChange={handlePhotoUpload} />
+                        <span className="text-sm font-semibold text-neutral-800">Upload from your device</span>
+                        <span>JPG or PNG, up to 6MB</span>
+                      </label>
+                      {photoUploadError ? (
+                        <p className="text-xs text-rose-600">{photoUploadError}</p>
+                      ) : (
+                        <p className="text-xs text-neutral-500">We&apos;ll embed the portrait directly in the preview and JPG download.</p>
+                      )}
+                      {formValues.photoUrl ? (
+                        <div className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-3">
+                          <div className="h-14 w-14 overflow-hidden flex flex-col items-center rounded-full border border-neutral-200 bg-neutral-100">
+                            <img
+                              src={formValues.photoUrl}
+                              alt="Portrait preview"
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <p className="text-xs text-neutral-600">Preview of the photo that will appear on the memorial card.</p>
+                        </div>
+                      ) : null}
+                      <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">Or supply a link</p>
+                      <input
+                        name="photoUrl"
+                        placeholder="Portrait URL (Google Drive, CDN, etc.)"
+                        className="form-field"
+                        value={formValues.photoUrl}
+                        onChange={handleFieldChange("photoUrl")}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <button
+                        type="button"
+                        onClick={toggleStructureEditor}
+                        className="rounded-full border border-neutral-200 p-1 text-neutral-500 transition hover:border-neutral-300 hover:text-neutral-800"
+                        aria-label={structureEditorOpen ? "Collapse template structure" : "Expand template structure"}
+                        aria-expanded={structureEditorOpen}
+                      >
+                        {structureEditorOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                      </button>
+                      <div>
+                        <p className="text-sm font-semibold text-neutral-900">Template structure</p>
+                        <p className="text-xs text-neutral-600">Reorder, rename, or refine the flow before generating the PDF.</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={resetStructureToTemplate}
+                        disabled={!selectedTemplate}
+                        className="rounded-full border border-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-600 transition hover:border-neutral-300 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Reset to template
+                      </button>
+                      <button
+                        type="button"
+                        onClick={addStructureSection}
+                        className="inline-flex items-center gap-1 rounded-full border border-neutral-900 px-3 py-1 text-xs font-semibold text-neutral-900 transition hover:bg-neutral-900 hover:text-white"
+                      >
+                        <Plus size={14} />
+                        Add section
+                      </button>
+                    </div>
+                  </div>
+                  {structureEditorOpen ? (
+                    structureSections.length === 0 ? (
+                      <p className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-4 text-xs text-neutral-500">
+                        Choose a template to load recommended sections, then tailor them to your ceremony.
+                      </p>
+                    ) : (
+                      <div className="space-y-3 max-h-[18rem] overflow-y-auto pr-1">
+                        {structureSections.map((section, index) => {
+                          const itemsValue = section.items?.join("\n") ?? "";
+                          const layout = getSectionLayout(section);
+                          const isActive = activeStructureIndex === index;
+                          const bulletSummary = section.items?.slice(0, 2).join(" - ");
+                          return (
+                            <div key={`${section.title}-${index}`} className="space-y-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-500">
+                                <div className="inline-flex items-center gap-2 font-semibold uppercase tracking-wide text-neutral-700">
+                                  <GripVertical size={14} />
+                                  <span>Section {index + 1}</span>
+                                  <span className="font-normal normal-case text-neutral-500">
+                                    {section.title || "Untitled"} - {section.items?.length ?? 0} entry{section.items && section.items.length === 1 ? "" : "ies"}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => moveStructureSection(index, "up")}
+                                    disabled={index === 0}
+                                    className="rounded-full border border-neutral-200 p-1 text-neutral-500 transition hover:border-neutral-300 hover:text-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                    aria-label="Move section up"
+                                  >
+                                    <ArrowUp size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => moveStructureSection(index, "down")}
+                                    disabled={index === structureSections.length - 1}
+                                    className="rounded-full border border-neutral-200 p-1 text-neutral-500 transition hover:border-neutral-300 hover:text-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                    aria-label="Move section down"
+                                  >
+                                    <ArrowDown size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeStructureSection(index)}
+                                    className="rounded-full border border-red-100 p-1 text-red-500 transition hover:border-red-200 hover:text-red-600"
+                                    aria-label="Remove section"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleSectionEditor(index)}
+                                    className="rounded-full border border-neutral-200 px-2 py-1 text-[11px] font-semibold text-neutral-700 transition hover:border-neutral-300"
+                                  >
+                                    {isActive ? "Hide editor" : "Edit"}
+                                  </button>
+                                </div>
+                              </div>
+                              {!isActive ? (
+                                <div className="flex flex-col text-xs text-neutral-500">
+                                  {bulletSummary ? (
+                                    <span className="truncate">
+                                      {bulletSummary}
+                                      {section.items && section.items.length > 2 ? "..." : ""}
+                                    </span>
+                                  ) : (
+                                    <span className="italic">No bullet items yet.</span>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="space-y-3">
+                                  <input
+                                    className="form-field"
+                                    value={section.title}
+                                    onChange={handleStructureFieldChange(index, "title")}
+                                    placeholder="Section title"
+                                  />
+                                  <textarea
+                                    className="form-field"
+                                    rows={2}
+                                    value={section.description ?? ""}
+                                    onChange={handleStructureFieldChange(index, "description")}
+                                    placeholder="Section description or facilitator"
+                                  />
+                                  <textarea
+                                    className="form-field"
+                                    rows={3}
+                                    value={itemsValue}
+                                    onChange={handleStructureFieldChange(index, "items")}
+                                    placeholder="Bullet points (one per line)"
+                                  />
+                                  <div className="grid gap-3 sm:grid-cols-2">
+                                    <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">
+                                      Margin top (px)
+                                      <input type="number" min={0} max={64} className="form-field" value={layout.marginTop} onChange={handleSectionNumberChange(index, 'marginTop')} />
+                                    </label>
+                                    <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">
+                                      Margin bottom (px)
+                                      <input type="number" min={0} max={64} className="form-field" value={layout.marginBottom} onChange={handleSectionNumberChange(index, 'marginBottom')} />
+                                    </label>
+                                    <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">
+                                      Card padding (px)
+                                      <input type="number" min={0} max={48} className="form-field" value={layout.padding} onChange={handleSectionNumberChange(index, 'padding')} />
+                                    </label>
+                                    <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">
+                                      Bullet gap (px)
+                                      <input type="number" min={0} max={32} className="form-field" value={layout.gap} onChange={handleSectionNumberChange(index, 'gap')} />
+                                    </label>
+                                  </div>
+                                  <label className="flex flex-col gap-2 text-xs font-medium text-neutral-600">
+                                    Font size
+                                    <input type="range" min={80} max={140} step={5} value={Math.round(layout.fontScale * 100)} onChange={handleSectionFontScaleChange(index)} />
+                                    <span className="text-[11px] text-neutral-500">{Math.round(layout.fontScale * 100)}%</span>
+                                  </label>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )
+                  ) : (
+                    <p className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-4 text-xs text-neutral-500">
+                      Template structure editor collapsed. Select the arrow above to reveal section controls.
+                    </p>
+                  )}
+                  {selectedFaith ? (
+                    <div className="space-y-3 max-w-4xl mx-auto">
+                      <p className="text-xs uppercase tracking-[0.35em] text-neutral-500">Card template style</p>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {memorialCardDesignsByFaith[selectedFaith as FaithKey]?.map((design) => (
+                          <label
+                            key={design.id}
+                            className={`card-lift relative flex cursor-pointer flex-col gap-2 rounded-3xl border p-4 transition ${
+                              selectedMemorialVariant === design.id
+                                ? "border-neutral-900 bg-white"
+                                : "border-neutral-200 bg-white/80 hover:border-neutral-400"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="memorial-variant"
+                              className="sr-only"
+                              checked={selectedMemorialVariant === design.id}
+                              onChange={() => setSelectedMemorialVariant(design.id)}
+                            />
+                            <p className="text-sm font-semibold text-neutral-900">{design.name}</p>
+                            <p className="text-xs text-neutral-600">{design.description}</p>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="rounded-3xl border border-dashed border-neutral-200 bg-white/70 p-4 text-xs text-neutral-500">
+                      Select a faith tradition to reveal memorial card templates.
+                    </p>
+                  )}
+                  <div className="rounded-3xl border border-neutral-200 bg-gradient-to-br from-white via-neutral-50 to-white p-4 max-w-3xl mx-auto">
+                    <p className="text-sm font-semibold text-neutral-900">Memorial card preview</p>
+                    <p className="mt-1 text-xs text-neutral-600">
+                      This live template mirrors the downloadable 665x960 JPG and updates as you personalise the card
+                      details.
+                    </p>
+                    <div className="mt-5 flex flex-col items-center gap-3">
+                      <div className="w-full max-w-[580px] rounded-lg bg-neutral-900/70 p-3 flex items-center justify-center overflow-hidden flex flex-col items-center">
+                        <MemorialCardPreview
+                          ref={memorialPreviewRef}
+                          variant={selectedMemorialVariant}
+                          name={formValues.honoreeName}
+                          birthDate={formValues.birthDate}
+                          passingDate={formValues.passingDate}
+                          tributeSentence={formValues.tributeSentence}
+                          title={formValues.title}
+                          readings={formValues.readings}
+                          music={formValues.music}
+                          eulogies={formValues.eulogies}
+                          notes={formValues.notes}
+                          photoUrl={formValues.photoUrl}
+                          themeOverrides={{
+                            background: cardEditorSettings.background,
+                            text: cardEditorSettings.text,
+                            accent: cardEditorSettings.accent,
+                          }}
+                          fontSelection={cardEditorSettings.fonts}
+                          typeScale={cardEditorSettings.fontScale}
+                          lineHeight={cardEditorSettings.lineHeight}
+                          previewWidth={320}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={downloadMemorialCard}
+                        className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-800 transition hover:border-neutral-400 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={!selectedMemorialVariant || cardDownloadStatus === "loading"}
+                      >
+                        {cardDownloadStatus === "loading" ? "Preparing JPG..." : "Download JPG (665x960)"}
+                      </button>
+                      {cardDownloadMessage ? (
+                        <p
+                          className={`text-xs ${
+                            cardDownloadStatus === "error"
+                              ? "text-rose-600"
+                              : "text-emerald-700"
+                          }`}
+                        >
+                          {cardDownloadMessage}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-4 rounded-3xl border border-neutral-200 bg-white/90 p-5 max-w-4xl mx-auto">
+                    <p className="text-sm font-semibold text-neutral-900">Design editor</p>
+                    <p className="text-xs text-neutral-600">Adjust card colors, typography, and spacing after selecting a template.</p>
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">
+                        Background
+                        <input
+                          type="color"
+                          className="h-10 w-full cursor-pointer rounded-2xl border border-neutral-200 bg-white p-1"
+                          value={cardEditorSettings.background}
+                          onChange={handleCardThemeChange('background')}
+                          disabled={!selectedMemorialVariant}
+                        />
+                        <span className="text-[11px] text-neutral-500">{cardEditorSettings.background}</span>
+                      </label>
+                      <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">
+                        Text
+                        <input
+                          type="color"
+                          className="h-10 w-full cursor-pointer rounded-2xl border border-neutral-200 bg-white p-1"
+                          value={cardEditorSettings.text}
+                          onChange={handleCardThemeChange('text')}
+                          disabled={!selectedMemorialVariant}
+                        />
+                        <span className="text-[11px] text-neutral-500">{cardEditorSettings.text}</span>
+                      </label>
+                      <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">
+                        Accent
+                        <input
+                          type="color"
+                          className="h-10 w-full cursor-pointer rounded-2xl border border-neutral-200 bg-white p-1"
+                          value={cardEditorSettings.accent}
+                          onChange={handleCardThemeChange('accent')}
+                          disabled={!selectedMemorialVariant}
+                        />
+                        <span className="text-[11px] text-neutral-500">{cardEditorSettings.accent}</span>
+                      </label>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">
+                        Script font
+                        <select
+                          className="form-field"
+                          value={cardEditorSettings.fonts.script}
+                          onChange={handleFontSelectionChange('script')}
+                          disabled={!selectedMemorialVariant}
+                        >
+                          {SCRIPT_FONT_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">
+                        Serif font
+                        <select
+                          className="form-field"
+                          value={cardEditorSettings.fonts.serif}
+                          onChange={handleFontSelectionChange('serif')}
+                          disabled={!selectedMemorialVariant}
+                        >
+                          {SERIF_FONT_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">
+                        Sans font
+                        <select
+                          className="form-field"
+                          value={cardEditorSettings.fonts.sans}
+                          onChange={handleFontSelectionChange('sans')}
+                          disabled={!selectedMemorialVariant}
+                        >
+                          {SANS_FONT_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="flex flex-col gap-2 text-xs font-medium text-neutral-600">
+                        Overall scale
+                        <input
+                          type="range"
+                          min={90}
+                          max={115}
+                          step={1}
+                          value={Math.round(cardEditorSettings.fontScale * 100)}
+                          onChange={handleFontScaleChange}
+                          disabled={!selectedMemorialVariant}
+                        />
+                        <span className="text-[11px] text-neutral-500">{Math.round(cardEditorSettings.fontScale * 100)}%</span>
+                      </label>
+                      <label className="flex flex-col gap-2 text-xs font-medium text-neutral-600">
+                        Line spacing
+                        <input
+                          type="range"
+                          min={100}
+                          max={180}
+                          step={5}
+                          value={Math.round(cardEditorSettings.lineHeight * 100)}
+                          onChange={handleLineHeightChange}
+                          disabled={!selectedMemorialVariant}
+                        />
+                        <span className="text-[11px] text-neutral-500">{cardEditorSettings.lineHeight.toFixed(2)}x line height</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
                 <input
-                  name="tributeSentence"
-                  placeholder="Short tribute sentence (e.g., 'Forever in our hearts')"
+                  name="title"
+                  placeholder="Programme title (e.g., Order of Service for...)"
                   className="form-field"
-                  value={formValues.tributeSentence}
-                  onChange={handleFieldChange("tributeSentence")}
+                  value={formValues.title}
+                  onChange={handleFieldChange("title")}
                   required
                 />
-                <input
-                  name="photoUrl"
-                  placeholder="Portrait URL (Google Drive, CDN, etc.)"
+                <textarea
+                  name="readings"
+                  placeholder="Readings / scripture / sutras"
                   className="form-field"
-                  value={formValues.photoUrl}
-                  onChange={handleFieldChange("photoUrl")}
+                  rows={4}
+                  value={formValues.readings}
+                  onChange={handleFieldChange("readings")}
+                />
+                <textarea
+                  name="music"
+                  placeholder="Music / hymns / chants"
+                  className="form-field"
+                  rows={3}
+                  value={formValues.music}
+                  onChange={handleFieldChange("music")}
+                />
+                <textarea
+                  name="eulogies"
+                  placeholder="Eulogies / tributes / reflections"
+                  className="form-field"
+                  rows={3}
+                  value={formValues.eulogies}
+                  onChange={handleFieldChange("eulogies")}
+                />
+                <textarea
+                  name="notes"
+                  placeholder="Additional notes (livestream link, CSR impact, ritual reminders)"
+                  className="form-field"
+                  rows={3}
+                  value={formValues.notes}
+                  onChange={handleFieldChange("notes")}
                 />
               </div>
-              <input
-                name="title"
-                placeholder="Programme title (e.g., Order of Service for...)"
-                className="form-field"
-                value={formValues.title}
-                onChange={handleFieldChange("title")}
-                required
-              />
-              <textarea
-                name="readings"
-                placeholder="Readings / scripture / sutras"
-                className="form-field"
-                rows={4}
-                value={formValues.readings}
-                onChange={handleFieldChange("readings")}
-              />
-              <textarea
-                name="music"
-                placeholder="Music / hymns / chants"
-                className="form-field"
-                rows={3}
-                value={formValues.music}
-                onChange={handleFieldChange("music")}
-              />
-              <textarea
-                name="eulogies"
-                placeholder="Eulogies / tributes / reflections"
-                className="form-field"
-                rows={3}
-                value={formValues.eulogies}
-                onChange={handleFieldChange("eulogies")}
-              />
-              <textarea
-                name="notes"
-                placeholder="Additional notes (livestream link, CSR impact, ritual reminders)"
-                className="form-field"
-                rows={3}
-                value={formValues.notes}
-                onChange={handleFieldChange("notes")}
-              />
             </div>
 
             <div className="space-y-4">
               <span className="tag-chip">Step 4 - Review and download</span>
-              {selectedTemplate ? (
+              {structureSections.length > 0 ? (
                 <div className="rounded-3xl border border-neutral-200 bg-white p-5">
                   <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
                     <Layers size={18} className="stroke-[1.5]" />
                     Ceremony flow overview
                   </div>
-                  <p className="mt-2 text-xs text-neutral-600">Generated from the selected template. Edit sections with your coordinator if you need a custom flow.</p>
+                  <p className="mt-2 text-xs text-neutral-600">Pulled from the chosen template or your custom sequence. Reorder or edit sections before exporting.</p>
                   <ul className="mt-4 space-y-3 text-sm text-neutral-700">
-                    {selectedTemplate.structure.map((section) => (
-                      <li key={section.title} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-                        <p className="text-sm font-semibold text-neutral-900">{section.title}</p>
-                        {section.description ? (
-                          <p className="text-xs text-neutral-600">{section.description}</p>
-                        ) : null}
-                        {section.items && section.items.length > 0 ? (
-                          <ul className="mt-1 space-y-1 text-xs text-neutral-600">
-                            {section.items.map((item) => (
-                              <li key={item} className="flex items-start gap-2">
-                                <span aria-hidden className="mt-0.5 text-neutral-400">-</span>
-                                <span>{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </li>
-                    ))}
+                    {structureSections.map((section, index) => {
+                      const layout = getSectionLayout(section);
+                      const headingFontSize = `${(layout.fontScale ?? 1) * 0.95}rem`;
+                      const detailFontSize = `${(layout.fontScale ?? 1) * 0.8}rem`;
+                      const listGap = Math.max(layout.gap ?? defaultSectionLayout.gap, 0);
+                      return (
+                        <li
+                          key={`${section.title}-${index}`}
+                          className="rounded-2xl border border-neutral-200 bg-neutral-50"
+                          style={{
+                            padding: `${layout.padding}px`,
+                            marginTop: `${layout.marginTop}px`,
+                            marginBottom: `${layout.marginBottom}px`,
+                          }}
+                        >
+                          <p className="font-semibold text-neutral-900" style={{ fontSize: headingFontSize }}>
+                            {section.title}
+                          </p>
+                          {section.description ? (
+                            <p className="text-neutral-600" style={{ fontSize: detailFontSize }}>
+                              {section.description}
+                            </p>
+                          ) : null}
+                          {section.items && section.items.length > 0 ? (
+                            <ul
+                              className="mt-1 flex flex-col text-neutral-600"
+                              style={{ gap: `${listGap}px`, fontSize: detailFontSize }}
+                            >
+                              {section.items.map((item) => (
+                                <li key={item} className="flex items-start gap-2">
+                                  <span aria-hidden className="mt-0.5 text-neutral-400">-</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
+              ) : selectedTemplate ? (
+                <p className="rounded-3xl border border-dashed border-neutral-200 bg-white/70 p-4 text-xs text-neutral-500">
+                  Add at least one section in the editor above to generate a ceremony overview.
+                </p>
               ) : null}
               <div className="flex flex-wrap gap-3 text-xs text-neutral-500">
                 <span className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1">
@@ -1149,6 +1882,7 @@ export default function OrderOfServicePage() {
                 </p>
               ) : null}
             </div>
+
           </form>
         </section>
       </div>
@@ -1159,5 +1893,21 @@ export default function OrderOfServicePage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
