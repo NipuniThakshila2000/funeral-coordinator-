@@ -45,6 +45,12 @@ type FontClasses = {
   sans: string;
 };
 
+type FontFamilies = {
+  script: string;
+  serif: string;
+  sans: string;
+};
+
 export type MemorialCardPreviewHandle = {
   download: () => Promise<void>;
 };
