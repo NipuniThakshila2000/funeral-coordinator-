@@ -92,6 +92,32 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function extractErrorMessage(payload: unknown): string | null {
+  if (!payload) {
+    return null;
+  }
+
+  if (typeof payload === "string") {
+    return payload;
+  }
+
+  if (typeof payload === "object") {
+    const record = payload as Record<string, unknown>;
+    if (typeof record.error === "string") {
+      return record.error;
+    }
+    const nestedError = record.error as { message?: unknown } | undefined;
+    if (nestedError && typeof nestedError.message === "string") {
+      return nestedError.message;
+    }
+    if (typeof record.message === "string") {
+      return record.message;
+    }
+  }
+
+  return null;
+}
+
 export function CanvaPanel() {
   const [status, setStatus] = useState<SessionStatus>("loading");
   const [profileName, setProfileName] = useState<string | null>(null);
@@ -188,6 +214,13 @@ export function CanvaPanel() {
         );
 
         if (!res.ok) {
+          let errorPayload: unknown = null;
+          try {
+            errorPayload = await res.json();
+          } catch {
+            errorPayload = null;
+          }
+
           if (res.status === 503) {
             setStatus("error");
             setStatusMessage(CANVA_NOT_CONFIGURED_MESSAGE);
@@ -196,8 +229,15 @@ export function CanvaPanel() {
             setTemplatesError(
               "We need Canva Enterprise access to list brand templates. You can still launch curated templates below."
             );
+          } else if (res.status === 401) {
+            setTemplatesError(
+              extractErrorMessage(errorPayload) ??
+                "Canva granted access, but we couldn't load brand templates yet. Please try again or reconnect."
+            );
           } else {
-            setTemplatesError("Could not load brand templates from Canva.");
+            const reason =
+              extractErrorMessage(errorPayload) ?? "Could not load brand templates from Canva.";
+            setTemplatesError(reason);
           }
           setTemplatesContinuation(undefined);
           return;

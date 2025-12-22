@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    await exchangeAuthorizationCode(code, pkce.codeVerifier);
+    await exchangeAuthorizationCode(code, pkce.codeVerifier, pkce.redirectUri);
     redirectUrl.searchParams.set("canvaStatus", "connected");
   } catch (exchangeError) {
     console.error("Canva authorization code exchange failed", exchangeError);
@@ -110,4 +110,5 @@ export async function GET(request: NextRequest) {
 
   return htmlRedirectResponse(redirectUrl, "Returning to Funeral Coordinator...");
 }
+
 

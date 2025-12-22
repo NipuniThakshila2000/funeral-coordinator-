@@ -54,10 +54,10 @@ export default function RefundPolicyPage() {
 
         <article className="space-y-4 rounded-3xl border border-neutral-200 p-6 text-sm leading-6 text-neutral-700">
           <p>
-            This policy covers payments collected through our website, hotline, PayHere links, or direct bank transfers. By confirming a booking you agree to the cancellation and refund rules outlined below.
+            This policy covers payments collected through our website. By confirming a booking you agree to the cancellation and refund rules outlined below.
           </p>
           <p>
-            Requests must be sent to <a href="mailto:help@funeralcoordinator.lk" className="underline">help@funeralcoordinator.lk</a> or via WhatsApp/phone on <a href="tel:+94770000000" className="underline">+94 77 000 0000</a>. Please ensure the authorised family representative submits the request so that we can validate identity before releasing funds.
+            Requests must be sent to <a href="mailto:help@funeralcoordinator.lk" className="underline">help@funeralcoordinator.lk</a>. Please ensure the authorised family representative submits the request so that we can validate identity before releasing funds.
           </p>
         </article>
 
@@ -102,3 +102,4 @@ export default function RefundPolicyPage() {
     </section>
   );
 }
+

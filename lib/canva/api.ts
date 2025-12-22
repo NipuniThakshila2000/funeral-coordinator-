@@ -134,7 +134,7 @@ export async function callCanva<T = unknown>(path: string, options: RequestOptio
   });
 
   if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 401) {
       clearCanvaSession();
     }
     throw new CanvaApiError("Canva API request failed", response.status, await safeJson(response));
@@ -147,8 +147,16 @@ export async function callCanva<T = unknown>(path: string, options: RequestOptio
   return (await response.json()) as T;
 }
 
-export async function exchangeAuthorizationCode(code: string, codeVerifier: string): Promise<CanvaSession> {
+export async function exchangeAuthorizationCode(
+  code: string,
+  codeVerifier: string,
+  redirectUriOverride?: string
+): Promise<CanvaSession> {
   const config = requireCanvaConfig();
+  const redirectUri =
+    redirectUriOverride && config.redirectUris.includes(redirectUriOverride)
+      ? redirectUriOverride
+      : config.redirectUri;
 
   const response = await fetch(config.tokenUrl, {
     method: "POST",
@@ -159,7 +167,7 @@ export async function exchangeAuthorizationCode(code: string, codeVerifier: stri
       grant_type: "authorization_code",
       code,
       code_verifier: codeVerifier,
-      redirect_uri: config.redirectUri,
+      redirect_uri: redirectUri,
       client_id: config.clientId,
       client_secret: config.clientSecret,
     }),

@@ -286,6 +286,89 @@ async function inlinePortraitElement(target: HTMLElement) {
   }
 }
 
+let documentStylesCache: string | null = null;
+
+function getDocumentStylesForDownload() {
+  if (typeof document === "undefined") {
+    return "";
+  }
+  if (documentStylesCache) {
+    return documentStylesCache;
+  }
+  const cssChunks: string[] = [];
+  const appendCss = (value?: string | null) => {
+    if (value && value.trim()) {
+      cssChunks.push(value);
+    }
+  };
+  for (const sheet of Array.from(document.styleSheets)) {
+    const cssSheet = sheet as CSSStyleSheet;
+    try {
+      const rules = cssSheet.cssRules;
+      if (!rules) {
+        continue;
+      }
+      for (const rule of Array.from(rules)) {
+        const cssText = (rule as CSSStyleRule)?.cssText;
+        if (cssText) {
+          cssChunks.push(cssText);
+        }
+      }
+      continue;
+    } catch (error) {
+      console.warn("Skipping stylesheet while preparing memorial card download", error);
+      appendCss((cssSheet.ownerNode as HTMLElement | null)?.textContent);
+    }
+  }
+  for (const inlineStyle of Array.from(document.querySelectorAll<HTMLStyleElement>("style"))) {
+    appendCss(inlineStyle.textContent);
+  }
+  const newlineChar = '\n';
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const cssText = cssChunks.join(newlineChar);
+  const normalizedCss = origin
+    ? cssText.replace(/url\((['"\s]?)(\/[^)]+)\1\)/g, (match, quote, pathSegment) => {
+        if (!pathSegment.startsWith('http')) {
+          const normalized = `${origin}${pathSegment}`;
+          const q = quote || '';
+          return `url(${q}${normalized}${q})`;
+        }
+        return match;
+      })
+    : cssText;
+  documentStylesCache = normalizedCss;
+  return documentStylesCache;
+}
+
+function prependDocumentStylesForDownload(target: HTMLElement) {
+  if (typeof document === "undefined") {
+    return;
+  }
+  const cssText = getDocumentStylesForDownload();
+  if (!cssText) {
+    return;
+  }
+  const styleElement = document.createElement("style");
+  styleElement.setAttribute("data-memorial-download-styles", "true");
+  styleElement.textContent = cssText;
+  target.insertBefore(styleElement, target.firstChild);
+}
+
+function prependFontClassStyles(target: HTMLElement, fontClasses: FontClasses, fontFamilies: FontFamilies) {
+  if (typeof document === "undefined") {
+    return;
+  }
+  if (!fontClasses || !fontFamilies) {
+    return;
+  }
+  const styleElement = document.createElement("style");
+  styleElement.setAttribute("data-memorial-font-classes", "true");
+  styleElement.textContent = `.${fontClasses.script} { font-family: ${fontFamilies.script}; }
+.${fontClasses.serif} { font-family: ${fontFamilies.serif}; }
+.${fontClasses.sans} { font-family: ${fontFamilies.sans}; }`;
+  target.insertBefore(styleElement, target.firstChild);
+}
+
 async function convertNodeToPng(card: HTMLElement, width: number, height: number) {
   const serializer = new XMLSerializer();
   const serialized = serializer.serializeToString(card);
@@ -386,13 +469,24 @@ export const MemorialCardPreview = forwardRef<MemorialCardPreviewHandle, Memoria
     const data = buildTemplateContent(props);
     const designMeta = getMemorialDesignByVariant(props.variant);
     const selection = props.fontSelection ?? DEFAULT_FONT_SELECTION;
-    const scriptFontClass = (scriptFontRegistry[selection.script] ?? scriptFontRegistry["great-vibes"]).font.className;
-    const serifFontClass = (serifFontRegistry[selection.serif] ?? serifFontRegistry.playfair).font.className;
-    const sansFontClass = (sansFontRegistry[selection.sans] ?? sansFontRegistry.inter).font.className;
+    const scriptFontEntry = scriptFontRegistry[selection.script] ?? scriptFontRegistry["great-vibes"];
+    const scriptFontClass = scriptFontEntry.font.className;
+    const scriptFontFamily = scriptFontEntry.font.style.fontFamily;
+    const serifFontEntry = serifFontRegistry[selection.serif] ?? serifFontRegistry.playfair;
+    const serifFontClass = serifFontEntry.font.className;
+    const serifFontFamily = serifFontEntry.font.style.fontFamily;
+    const sansFontEntry = sansFontRegistry[selection.sans] ?? sansFontRegistry.inter;
+    const sansFontClass = sansFontEntry.font.className;
+    const sansFontFamily = sansFontEntry.font.style.fontFamily;
     const fonts: FontClasses = {
       script: scriptFontClass,
       serif: serifFontClass,
       sans: sansFontClass,
+    };
+    const fontFamilies: FontFamilies = {
+      script: scriptFontFamily,
+      serif: serifFontFamily,
+      sans: sansFontFamily,
     };
     const baseTheme = designMeta?.defaultTheme ?? { background: '#ffffff', text: '#1a1a1a', accent: '#d6b56b' };
     const theme: CardTheme = {
@@ -408,10 +502,20 @@ export const MemorialCardPreview = forwardRef<MemorialCardPreviewHandle, Memoria
       if (!cardRef.current || !designMeta) {
         throw new Error("Memorial card preview is not ready");
       }
+      if (document.fonts?.ready) {
+        try {
+          await document.fonts.ready;
+        } catch (error) {
+          console.warn("Fonts did not finish loading before download", error);
+        }
+      }
+
       const clone = cardRef.current.cloneNode(true) as HTMLElement;
+      prependFontClassStyles(clone, fonts, fontFamilies);
       clone.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
       clone.style.width = `${designMeta.downloadSize.width}px`;
       clone.style.height = `${designMeta.downloadSize.height}px`;
+      prependDocumentStylesForDownload(clone);
       await inlinePortraitSource(clone);
       const jpegBlob = await convertNodeToJpeg(clone, designMeta.downloadSize.width, designMeta.downloadSize.height);
       const downloadUrl = URL.createObjectURL(jpegBlob);
@@ -421,7 +525,7 @@ export const MemorialCardPreview = forwardRef<MemorialCardPreviewHandle, Memoria
       anchor.href = downloadUrl;
       anchor.click();
       URL.revokeObjectURL(downloadUrl);
-    }, [data.name, designMeta, props.variant]);
+    }, [data.name, designMeta, fontFamilies.script, fontFamilies.serif, fontFamilies.sans, fonts.script, fonts.serif, fonts.sans, props.variant]);
 
     useImperativeHandle(ref, () => ({ download: downloadCard }), [downloadCard]);
 
@@ -454,8 +558,19 @@ export const MemorialCardPreview = forwardRef<MemorialCardPreviewHandle, Memoria
     const canvasClassName = shouldOverrideLineHeight ? 'card-canvas lineheight-active' : 'card-canvas';
 
     return (
-      <div className={`preview-shell ${props.className ?? ""}`} ref={cardRef}>
-        <div className="card-wrapper" style={{ width: `${previewWidth}px`, maxWidth: "100%" }}>
+      <div className={`preview-shell ${props.className ?? ""}`}>
+        <div
+          className="card-wrapper"
+          style={{
+            width: `${previewWidth}px`,
+            maxWidth: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: theme.background,
+          }}
+          ref={cardRef}
+        >
+
           <div className="card-inner">
             {props.variant ? (
               <div className={canvasClassName} style={cardCanvasStyle}>
@@ -479,21 +594,47 @@ export const MemorialCardPreview = forwardRef<MemorialCardPreviewHandle, Memoria
             width: min(665px, 100%);
             aspect-ratio: 665 / 960;
             display: flex;
-            align-items: stretch;
+            justify-content: center;
+
+            align-items: center;
+            overflow: hidden;
+          }
+          .card-wrapper :global(.card) {
+            box-shadow: none !important;
+          }
+          .card-wrapper :global(.card::before),
+          .card-wrapper :global(.card::after) {
+            box-shadow: none !important;
           }
           .card-inner {
+
             width: 100%;
+
             height: 100%;
+
             display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
           }
           .card-inner :global(> *) {
             width: 100%;
             height: 100%;
           }
           .card-canvas {
+
             width: 100%;
+
             height: 100%;
+
             display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
           }
           .card-canvas :global(> *) {
             width: 100%;

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <defs>
+    <radialGradient id="grad" cx="30%" cy="25%" r="80%">
+      <stop offset="0%" stop-color="#fdf5e6" />
+      <stop offset="50%" stop-color="#e0d4f9" />
+      <stop offset="100%" stop-color="#b3c7ef" />
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" rx="200" fill="url(#grad)" />
+  <circle cx="200" cy="155" r="75" fill="#f8f2ff" stroke="#d2c4e9" stroke-width="6" />
+  <path d="M120 320c12-54 64-90 80-90s68 36 80 90" fill="#f9f6ff" stroke="#d8cde9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="200" y="365" text-anchor="middle" font-size="32" fill="#735c96" font-family="'Playfair Display', 'Times New Roman', serif">Portrait</text>
+</svg>

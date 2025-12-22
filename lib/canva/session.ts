@@ -17,6 +17,7 @@ export type PkceSession = {
   state: string;
   codeVerifier: string;
   returnTo?: string;
+  redirectUri?: string;
   createdAt: number;
 };
 
@@ -143,5 +144,8 @@ export function isSessionExpired(session: CanvaSession): boolean {
 export function shouldRefresh(session: CanvaSession): boolean {
   return Date.now() > session.expiresAt - 2 * 60 * 1000; // refresh 2 minutes before expiry
 }
+
+
+
 
 

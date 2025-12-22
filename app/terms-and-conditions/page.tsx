@@ -7,11 +7,6 @@ export const metadata: Metadata = {
 
 const termsSections = [
   {
-    title: "Acceptance of terms",
-    body:
-      "By accessing funeralcoordinator.lk or confirming services with our coordination team you agree to these terms as adapted from the PayHere sample for our operations in Sri Lanka.",
-  },
-  {
     title: "Services",
     body:
       "We provide funeral planning, vendor coordination, transportation, documentation support, and grief resources. We may refer you to licensed legal or medical professionals when specialised advice is required.",
@@ -22,6 +17,7 @@ const termsSections = [
       "You confirm that all information shared with us is accurate and that you have the authority of the family or estate to act, sign documents, and settle invoices.",
   },
 ];
+
 
 export default function TermsPage() {
   return (

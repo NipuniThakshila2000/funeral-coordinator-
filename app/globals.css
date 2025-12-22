@@ -19,6 +19,8 @@
 
   html {
     @apply scroll-smooth;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
     background-color: var(--surface-muted);
   }
 
@@ -51,6 +53,7 @@
 
 @layer components {
   .glass-panel {
+    -webkit-backdrop-filter: blur(18px);
     backdrop-filter: blur(18px);
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(233, 235, 239, 0.96));
     border: 1px solid rgba(0, 0, 0, 0.06);
@@ -160,6 +163,13 @@
     background: linear-gradient(135deg, #111111, #2f2f2f 55%, #434343 100%);
     color: #f9fafb;
   }
+
+  [class*="backdrop-blur"] {
+    -webkit-backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast)
+      var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert)
+      var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+  }
+
 }
 
 .fade-up {

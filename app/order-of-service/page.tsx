@@ -1190,7 +1190,7 @@ export default function OrderOfServicePage() {
     }
   };
   return (
-    <div className="space-y-16 px-6 py-16">
+    <div className="space-y-16 px-4 py-16 sm:px-6">
       <div className="mx-auto grid max-w-4xl gap-00">
         <section className="space-y-6">
           <span className="tag-chip">Order of service</span>
@@ -1200,7 +1200,7 @@ export default function OrderOfServicePage() {
           <p className="text-lg text-neutral-700">
             Generate a PDF-ready programme aligned to your faith tradition. Coordinators can personalise hymns, chant schedules, tributes, and multimedia cues for you.
           </p>
-          <div className="grid gap-4 rounded-3xl border border-neutral-200 bg-white p-6 text-sm text-neutral-600 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 rounded-3xl border border-neutral-200 bg-white p-6 text-sm text-neutral-600 sm:grid-cols-2">
             {builderSteps.map((step) => (
               <div key={step.step} className="space-y-1">
                 <p className="text-xs uppercase tracking-widest text-neutral-500">{step.step}</p>
@@ -1222,13 +1222,13 @@ export default function OrderOfServicePage() {
           </div>
         </section>
 
-        <section className="glass-panel relative overflow-hidden flex flex-col items-center rounded-[2.5rem] border border-neutral-200 bg-white p-8 shadow-glow">
+        <section className="glass-panel relative flex w-full flex-col overflow-hidden rounded-[2.5rem] border border-neutral-200 bg-white p-4 shadow-glow sm:p-8">
           <span className="absolute -left-16 top-0 h-48 w-48 rounded-full bg-black/10 blur-3xl" aria-hidden />
           <span className="absolute -right-20 bottom-0 h-48 w-48 rounded-full bg-black/5 blur-3xl" aria-hidden />
-          <form onSubmit={submit} className="relative space-y-8 text-sm text-neutral-700">
+          <form onSubmit={submit} className="relative mx-auto w-full max-w-3xl space-y-8 text-sm text-neutral-700">
             <fieldset className="space-y-4" aria-label="Faith tradition">
               <span className="tag-chip">Step 1 - Faith tradition</span>
-              <div className="grid gap-1 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {faithEntries.map(([key, definition]) => (
                   <label
                     key={key}
@@ -1261,7 +1261,7 @@ export default function OrderOfServicePage() {
             <fieldset className="space-y-4" aria-label="Template style" disabled={!selectedFaithDefinition}>
               <span className="tag-chip">Step 2 - Template style</span>
               {selectedFaithDefinition ? (
-                <div className="grid gap-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {selectedFaithDefinition.templates.map((template) => (
                     <label
                       key={template.id}
@@ -1280,7 +1280,7 @@ export default function OrderOfServicePage() {
                       <div className="space-y-2">
                         <p className="text-sm font-semibold text-neutral-900">{template.name}</p>
                         <p className="text-xs text-neutral-600">{template.summary}</p>
-                      </div>
+                        </div>
                       <ul className="space-y-1 text-xs text-neutral-600">
                         {template.highlights.map((highlight) => (
                           <li key={highlight} className="flex items-start gap-2">
@@ -1317,7 +1317,7 @@ export default function OrderOfServicePage() {
                       onChange={handleFieldChange("honoreeName")}
                       required
                     />
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <input
                         type="date"
                         name="birthDate"
@@ -1518,7 +1518,7 @@ export default function OrderOfServicePage() {
                                     onChange={handleStructureFieldChange(index, "items")}
                                     placeholder="Bullet points (one per line)"
                                   />
-                                  <div className="grid gap-3 sm:grid-cols-2">
+                                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                     <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">
                                       Margin top (px)
                                       <input type="number" min={0} max={64} className="form-field" value={layout.marginTop} onChange={handleSectionNumberChange(index, 'marginTop')} />
@@ -1556,7 +1556,7 @@ export default function OrderOfServicePage() {
                   {selectedFaith ? (
                     <div className="space-y-3 max-w-4xl mx-auto">
                       <p className="text-xs uppercase tracking-[0.35em] text-neutral-500">Card template style</p>
-                      <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         {memorialCardDesignsByFaith[selectedFaith as FaithKey]?.map((design) => (
                           <label
                             key={design.id}
@@ -1584,14 +1584,14 @@ export default function OrderOfServicePage() {
                       Select a faith tradition to reveal memorial card templates.
                     </p>
                   )}
-                  <div className="rounded-3xl border border-neutral-200 bg-gradient-to-br from-white via-neutral-50 to-white p-4 max-w-3xl mx-auto">
+                  <div className="max-w-3xl mx-auto">
                     <p className="text-sm font-semibold text-neutral-900">Memorial card preview</p>
                     <p className="mt-1 text-xs text-neutral-600">
                       This live template mirrors the downloadable 665x960 JPG and updates as you personalise the card
                       details.
                     </p>
                     <div className="mt-5 flex flex-col items-center gap-3">
-                      <div className="w-full max-w-[580px] rounded-lg bg-neutral-900/70 p-3 flex items-center justify-center overflow-hidden flex flex-col items-center">
+                        <div className="w-full max-w-[665px] flex flex-col items-center justify-center overflow-hidden">
                         <MemorialCardPreview
                           ref={memorialPreviewRef}
                           variant={selectedMemorialVariant}
@@ -1640,7 +1640,7 @@ export default function OrderOfServicePage() {
                   <div className="mt-4 space-y-4 rounded-3xl border border-neutral-200 bg-white/90 p-5 max-w-4xl mx-auto">
                     <p className="text-sm font-semibold text-neutral-900">Design editor</p>
                     <p className="text-xs text-neutral-600">Adjust card colors, typography, and spacing after selecting a template.</p>
-                    <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                       <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">
                         Background
                         <input
@@ -1675,7 +1675,7 @@ export default function OrderOfServicePage() {
                         <span className="text-[11px] text-neutral-500">{cardEditorSettings.accent}</span>
                       </label>
                     </div>
-                    <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                       <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">
                         Script font
                         <select
@@ -1722,7 +1722,7 @@ export default function OrderOfServicePage() {
                         </select>
                       </label>
                     </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <label className="flex flex-col gap-2 text-xs font-medium text-neutral-600">
                         Overall scale
                         <input
@@ -1893,6 +1893,7 @@ export default function OrderOfServicePage() {
     </div>
   );
 }
+
 
 
 

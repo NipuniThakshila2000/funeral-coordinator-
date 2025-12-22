@@ -21,7 +21,50 @@ type TemplateSection = {
   title: string;
   description?: string;
   items?: string[];
+  marginTop?: number;
+  marginBottom?: number;
+  padding?: number;
+  gap?: number;
+  fontScale?: number;
 };
+
+const defaultSectionLayout: Required<Pick<TemplateSection, 'marginTop' | 'marginBottom' | 'padding' | 'gap' | 'fontScale'>> = {
+  marginTop: 12,
+  marginBottom: 10,
+  padding: 12,
+  gap: 6,
+  fontScale: 1,
+};
+
+function clampNumber(value: number, min: number, max: number) {
+  if (!Number.isFinite(value)) {
+    return value;
+  }
+  if (value < min) {
+    return min;
+  }
+  if (value > max) {
+    return max;
+  }
+  return value;
+}
+
+function normalizeSectionLayout(section?: TemplateSection) {
+  const sanitize = (input: number | undefined, fallback: number, min: number, max: number) => {
+    if (typeof input !== 'number' || Number.isNaN(input)) {
+      return fallback;
+    }
+    return clampNumber(input, min, max);
+  };
+
+  return {
+    marginTop: sanitize(section?.marginTop, defaultSectionLayout.marginTop, 0, 72),
+    marginBottom: sanitize(section?.marginBottom, defaultSectionLayout.marginBottom, 0, 72),
+    padding: sanitize(section?.padding, defaultSectionLayout.padding, 0, 64),
+    gap: sanitize(section?.gap, defaultSectionLayout.gap, 0, 32),
+    fontScale: sanitize(section?.fontScale, defaultSectionLayout.fontScale, 0.5, 2),
+  };
+}
 
 type PdfPayload = {
   faith: string;
@@ -589,23 +632,58 @@ function MemorialDocument({
               <Text style={[styles.timelineDescription, { marginTop: 10, color: template.textColor }]}>No sections added yet.</Text>
             )}
             {structure.length > 0 &&
-              structure.map((section, index) => (
-                <View key={`${section.title}-${index}`} style={styles.timelineItem}>
-                  <Text style={[styles.timelineHeading, { color: template.textColor }]}>{section.title}</Text>
-                  {section.description ? (
-                    <Text style={[styles.timelineDescription, { color: template.secondary }]}>{section.description}</Text>
-                  ) : null}
-                  {section.items && section.items.length > 0 ? (
-                    <View style={styles.bulletList}>
-                      {section.items.map((item, itemIndex) => (
-                        <Text key={`${item}-${itemIndex}`} style={[styles.bulletItem, { color: template.textColor }]}>
-                          - {item}
-                        </Text>
-                      ))}
-                    </View>
-                  ) : null}
-                </View>
-              ))}
+              structure.map((section, index) => {
+                const layout = normalizeSectionLayout(section);
+                const bulletSpacing = Math.max(layout.gap, 0);
+                return (
+                  <View
+                    key={`${section.title}-${index}`}
+                    style={[
+                      styles.timelineItem,
+                      {
+                        marginTop: layout.marginTop,
+                        marginBottom: layout.marginBottom,
+                        padding: layout.padding,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.timelineHeading, { color: template.textColor, fontSize: 13 * layout.fontScale }]}
+                    >
+                      {section.title}
+                    </Text>
+                    {section.description ? (
+                      <Text
+                        style={[
+                          styles.timelineDescription,
+                          { color: template.secondary, fontSize: 11 * layout.fontScale },
+                        ]}
+                      >
+                        {section.description}
+                      </Text>
+                    ) : null}
+                    {section.items && section.items.length > 0 ? (
+                      <View style={[styles.bulletList, { marginTop: bulletSpacing }]}>
+                        {section.items.map((item, itemIndex) => (
+                          <Text
+                            key={`${item}-${itemIndex}`}
+                            style={[
+                              styles.bulletItem,
+                              {
+                                color: template.textColor,
+                                fontSize: 11 * layout.fontScale,
+                                marginBottom: bulletSpacing / 2,
+                              },
+                            ]}
+                          >
+                            - {item}
+                          </Text>
+                        ))}
+                      </View>
+                    ) : null}
+                  </View>
+                );
+              })}
           </View>
 
           <View style={[styles.columnCard, { backgroundColor: template.panelBackground, borderColor: template.panelBorder }]}>
@@ -677,6 +755,7 @@ export async function POST(request: Request) {
         items: Array.isArray(section?.items)
           ? section.items.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
           : undefined,
+        ...normalizeSectionLayout(section ?? undefined),
       }))
     : [];
 
