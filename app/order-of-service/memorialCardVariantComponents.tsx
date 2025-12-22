@@ -1396,7 +1396,7 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
 
           width: min(665px, 100%);
 
-          aspect-ratio: 3 / 4;
+          aspect-ratio: 665 / 960;
 
           position: relative;
 

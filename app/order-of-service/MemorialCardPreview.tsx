@@ -559,7 +559,7 @@ export const MemorialCardPreview = forwardRef<MemorialCardPreviewHandle, Memoria
     cardCanvasStyle['--card-bg'] = theme.background;
     cardCanvasStyle['--card-text'] = theme.text;
     cardCanvasStyle['--card-accent'] = theme.accent;
-    cardCanvasStyle.backgroundColor = theme.background;
+    cardCanvasStyle.backgroundColor = 'transparent';
     cardCanvasStyle.color = theme.text;
     const canvasClassName = shouldOverrideLineHeight ? 'card-canvas lineheight-active' : 'card-canvas';
 
@@ -680,6 +680,7 @@ export const MemorialCardPreview = forwardRef<MemorialCardPreviewHandle, Memoria
     );
   }
 );
+
 
 
 
