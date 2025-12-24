@@ -142,7 +142,7 @@ export function renderMemorialCardVariant(
 
 function ChristianPeachCrest({ data, fonts, theme }: TemplateProps) {
 
-  const { name, dates, titleLine, subtitleLine, tribute, service, body, notes, photoUrl } = data;
+  const { name, dates, titleLine, subtitleLine, tribute, service, body, footer, notes, photoUrl } = data;
 
   const crestScript = (titleLine || "In loving memory").trim();
 
@@ -1655,7 +1655,7 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
   );
 
 }function BuddhistMinimalGold({ data, fonts, theme }: TemplateProps) {
-  const { name, dates, titleLine, subtitleLine, tribute, service, body, notes, photoUrl } = data;
+  const { name, dates, titleLine, subtitleLine, tribute, service, body, footer, notes, photoUrl } = data;
   const topScript = (titleLine || subtitleLine || 'In loving memory of').trim();
   const displayName = (name?.trim() || 'Jane Anderson').trim();
   const displayDates = dates?.trim() || 'JUNE 21, 1980 - MARCH 22, 2019';
@@ -1890,14 +1890,14 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
 }
 
 function HinduSunriseBanner({ data, fonts, theme }: TemplateProps) {
-  const { name, dates, titleLine, subtitleLine, tribute, service, body, notes, photoUrl } = data;
+  const { name, dates, titleLine, subtitleLine, tribute, service, body, footer, notes, photoUrl } = data;
   const subtitleText = (titleLine || subtitleLine || tribute || 'Celebrating the life of').trim();
   const displayName = (name?.trim() || 'Rachelle Beaudry').trim();
   const [firstName, ...rest] = displayName.split(/\s+/);
   const lastName = (rest.length ? rest.join(' ') : '').toUpperCase() || 'BEAUDRY';
   const displayFirst = firstName || displayName;
   const displayDates = dates?.trim() || 'OCTOBER 06, 1955 ? MAY 07, 2027';
-  const serviceLine = splitLines(service || body || notes).join(' ') || '04.07.2027 FROM 10:00 AM TO 11:00 AM';
+  const serviceLine = splitLines(service || body || notes || footer).join(' ') || '04.07.2027 FROM 10:00 AM TO 11:00 AM';
   const photoStyles: CSSProperties | undefined = photoUrl ? { backgroundImage: `url(${photoUrl})` } : undefined;
 
   const styleVars = {
