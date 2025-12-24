@@ -486,15 +486,15 @@ export function CanvaPanel() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-2">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="space-y-2 sm:max-w-3xl">
           <span className="tag-chip">Canva design suite</span>
           <h2 className="text-3xl font-semibold text-neutral-900">Customise service programmes in Canva.</h2>
           <p className="max-w-2xl text-sm text-neutral-600">
             Connect your Canva workspace to pull in brand templates, personalise orders of service, and download press-ready PDFs for families.
           </p>
         </div>
-        <div className="flex shrink-0 gap-3">
+        <div className="flex w-full gap-3 sm:w-auto sm:justify-end">
           {status === "connected" ? (
             <button
               onClick={disconnectCanva}
@@ -533,9 +533,9 @@ export function CanvaPanel() {
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <div className="space-y-6 rounded-[2.5rem] border border-neutral-200 bg-white p-6 shadow-glow">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-800">Connection status</p>
               <p className="text-xs text-neutral-500">
@@ -574,7 +574,7 @@ export function CanvaPanel() {
               <label className="text-sm font-medium text-neutral-800" htmlFor="canva-search">
                 Search Canva brand templates
               </label>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <input
                   id="canva-search"
                   type="search"
@@ -629,7 +629,7 @@ export function CanvaPanel() {
                   </button>
                 )}
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {templates.map((template) => (
                   <div key={template.id} className="rounded-2xl border border-neutral-200 bg-white p-4">
                     <p className="text-sm font-semibold text-neutral-900">{template.title}</p>
@@ -660,7 +660,7 @@ export function CanvaPanel() {
           <div className="space-y-3">
             <p className="text-sm font-semibold text-neutral-800">Curated faith-specific starting points</p>
             {sortedCuratedTemplates.length > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {sortedCuratedTemplates.map((template) => (
                   <div
                     key={`${template.faith}-${template.title}`}

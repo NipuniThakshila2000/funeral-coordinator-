@@ -142,7 +142,7 @@ export function renderMemorialCardVariant(
 
 function ChristianPeachCrest({ data, fonts, theme }: TemplateProps) {
 
-  const { name, dates, titleLine, subtitleLine, tribute, service, body, footer, notes, photoUrl } = data;
+  const { name, dates, titleLine, subtitleLine, tribute, service, body, notes, photoUrl } = data;
 
   const crestScript = (titleLine || "In loving memory").trim();
 
@@ -420,7 +420,7 @@ function ChristianPeachCrest({ data, fonts, theme }: TemplateProps) {
 
           letter-spacing: 0.38em;
 
-          font-size: 2.3cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.3cqw);
 
           margin: 0 0 1.8cqw;
 
@@ -494,7 +494,7 @@ function ChristianPeachCrest({ data, fonts, theme }: TemplateProps) {
 
         .crest-script {
 
-          font-size: 4.5cqw;
+          font-size: calc(var(--card-type-scale, 1) * 4.5cqw);
 
           margin: 0;
 
@@ -556,7 +556,7 @@ function ChristianPeachCrest({ data, fonts, theme }: TemplateProps) {
 
         .first-name {
 
-          font-size: 7cqw;
+          font-size: calc(var(--card-type-scale, 1) * 7cqw);
 
           margin: 0;
 
@@ -566,7 +566,7 @@ function ChristianPeachCrest({ data, fonts, theme }: TemplateProps) {
 
         .last-name {
 
-          font-size: 4.6cqw;
+          font-size: calc(var(--card-type-scale, 1) * 4.6cqw);
 
           letter-spacing: 0.45em;
 
@@ -580,7 +580,7 @@ function ChristianPeachCrest({ data, fonts, theme }: TemplateProps) {
 
         .dates {
 
-          font-size: 2.4cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.4cqw);
 
           letter-spacing: 0.22em;
 
@@ -594,7 +594,7 @@ function ChristianPeachCrest({ data, fonts, theme }: TemplateProps) {
 
         .message {
 
-          font-size: 2.2cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.2cqw);
 
           margin: 0 0 3cqw;
 
@@ -630,7 +630,7 @@ function ChristianPeachCrest({ data, fonts, theme }: TemplateProps) {
 
           margin: 0 0 0.6cqw;
 
-          font-size: 2.1cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.1cqw);
 
           color: rgba(0, 0, 0, 0.66);
 
@@ -640,7 +640,7 @@ function ChristianPeachCrest({ data, fonts, theme }: TemplateProps) {
 
           margin: 0;
 
-          font-size: 2.3cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.3cqw);
 
           font-weight: 600;
 
@@ -662,7 +662,7 @@ function ChristianPeachCrest({ data, fonts, theme }: TemplateProps) {
 
         .venue {
 
-          font-size: 3cqw;
+          font-size: calc(var(--card-type-scale, 1) * 3cqw);
 
           font-weight: 700;
 
@@ -678,7 +678,7 @@ function ChristianPeachCrest({ data, fonts, theme }: TemplateProps) {
 
           margin: 0;
 
-          font-size: 2.1cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.1cqw);
 
           color: rgba(0, 0, 0, 0.6);
 
@@ -698,61 +698,61 @@ function ChristianPeachCrest({ data, fonts, theme }: TemplateProps) {
 
           .subtitle {
 
-            font-size: clamp(10px, 2.3cqw, 15px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.3cqw), calc(15px * var(--card-type-scale, 1)));
 
           }
 
           .crest-script {
 
-            font-size: clamp(16px, 4.5cqw, 34px);
+            font-size: clamp(calc(16px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 4.5cqw), calc(34px * var(--card-type-scale, 1)));
 
           }
 
           .first-name {
 
-            font-size: clamp(22px, 7cqw, 52px);
+            font-size: clamp(calc(22px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 7cqw), calc(52px * var(--card-type-scale, 1)));
 
           }
 
           .last-name {
 
-            font-size: clamp(16px, 4.6cqw, 32px);
+            font-size: clamp(calc(16px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 4.6cqw), calc(32px * var(--card-type-scale, 1)));
 
           }
 
           .dates {
 
-            font-size: clamp(10px, 2.4cqw, 15px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.4cqw), calc(15px * var(--card-type-scale, 1)));
 
           }
 
           .message {
 
-            font-size: clamp(10px, 2.2cqw, 14px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.2cqw), calc(14px * var(--card-type-scale, 1)));
 
           }
 
           .service-title {
 
-            font-size: clamp(9px, 2.1cqw, 13px);
+            font-size: clamp(calc(9px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.1cqw), calc(13px * var(--card-type-scale, 1)));
 
           }
 
           .service-detail {
 
-            font-size: clamp(10px, 2.3cqw, 15px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.3cqw), calc(15px * var(--card-type-scale, 1)));
 
           }
 
           .venue {
 
-            font-size: clamp(14px, 3cqw, 22px);
+            font-size: clamp(calc(14px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 3cqw), calc(22px * var(--card-type-scale, 1)));
 
           }
 
           .address {
 
-            font-size: clamp(10px, 2.1cqw, 13px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.1cqw), calc(13px * var(--card-type-scale, 1)));
 
           }
 
@@ -936,7 +936,7 @@ function ChristianBlueDove({ data, fonts, theme }: TemplateProps) {
 
         .title {
 
-          font-size: 30px;
+          font-size: calc(var(--card-type-scale, 1) * 30px);
 
           letter-spacing: 0.2px;
 
@@ -1096,7 +1096,7 @@ function ChristianBlueDove({ data, fonts, theme }: TemplateProps) {
 
         .name {
 
-          font-size: clamp(3.6rem, 7vw, 4.9rem);
+          font-size: clamp(calc(3.6rem * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 7vw), calc(4.9rem * var(--card-type-scale, 1)));
 
           line-height: 1;
 
@@ -1108,7 +1108,7 @@ function ChristianBlueDove({ data, fonts, theme }: TemplateProps) {
 
         .dates {
 
-          font-size: 20px;
+          font-size: calc(var(--card-type-scale, 1) * 20px);
 
           color: var(--card-muted, #3b3b3b);
 
@@ -1118,7 +1118,7 @@ function ChristianBlueDove({ data, fonts, theme }: TemplateProps) {
 
         .subtitle {
 
-          font-size: 18px;
+          font-size: calc(var(--card-type-scale, 1) * 18px);
 
           color: var(--card-muted, #3b3b3b);
 
@@ -1546,7 +1546,7 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
 
         .topline {
 
-          font-size: 1.842cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.842cqw);
 
           letter-spacing: 0.26em;
 
@@ -1560,7 +1560,7 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
 
         .name {
 
-          font-size: 9.474cqw;
+          font-size: calc(var(--card-type-scale, 1) * 9.474cqw);
 
           line-height: 1;
 
@@ -1572,7 +1572,7 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
 
         .dates {
 
-          font-size: 2.105cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.105cqw);
 
           color: rgba(0, 0, 0, 0.55);
 
@@ -1584,7 +1584,7 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
 
         .details {
 
-          font-size: 1.579cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.579cqw);
 
           letter-spacing: 0.14em;
 
@@ -1610,25 +1610,25 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
 
           .topline {
 
-            font-size: clamp(10px, 1.842cqw, 14px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 1.842cqw), calc(14px * var(--card-type-scale, 1)));
 
           }
 
           .name {
 
-            font-size: clamp(34px, 9.474cqw, 72px);
+            font-size: clamp(calc(34px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 9.474cqw), calc(72px * var(--card-type-scale, 1)));
 
           }
 
           .dates {
 
-            font-size: clamp(11px, 2.105cqw, 16px);
+            font-size: clamp(calc(11px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.105cqw), calc(16px * var(--card-type-scale, 1)));
 
           }
 
           .details {
 
-            font-size: clamp(9px, 1.579cqw, 12px);
+            font-size: clamp(calc(9px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 1.579cqw), calc(12px * var(--card-type-scale, 1)));
 
           }
 
@@ -1655,7 +1655,7 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
   );
 
 }function BuddhistMinimalGold({ data, fonts, theme }: TemplateProps) {
-  const { name, dates, titleLine, subtitleLine, tribute, service, body, footer, notes, photoUrl } = data;
+  const { name, dates, titleLine, subtitleLine, tribute, service, body, notes, photoUrl } = data;
   const topScript = (titleLine || subtitleLine || 'In loving memory of').trim();
   const displayName = (name?.trim() || 'Jane Anderson').trim();
   const displayDates = dates?.trim() || 'JUNE 21, 1980 - MARCH 22, 2019';
@@ -1776,7 +1776,7 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
           color: var(--card-ink, #121212);
         }
         .topScript {
-          font-size: 5.2cqw;
+          font-size: calc(var(--card-type-scale, 1) * 5.2cqw);
           line-height: 1;
           margin: 0 0 3cqw;
           color: rgba(0, 0, 0, 0.78);
@@ -1800,14 +1800,14 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
           transform: scale(1.02);
         }
         .name {
-          font-size: 7.2cqw;
+          font-size: calc(var(--card-type-scale, 1) * 7.2cqw);
           line-height: 1;
           margin: 0 0 1.6cqw;
           color: rgba(0, 0, 0, 0.86);
         }
         .dates {
           font-weight: 700;
-          font-size: 1.7cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.7cqw);
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: rgba(0, 0, 0, 0.75);
@@ -1815,7 +1815,7 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
         }
         .invite {
           font-weight: 600;
-          font-size: 1.6cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.6cqw);
           line-height: 1.55;
           letter-spacing: 0.04em;
           text-transform: uppercase;
@@ -1829,7 +1829,7 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
         }
         .serviceLine {
           font-weight: 800;
-          font-size: 1.65cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.65cqw);
           letter-spacing: 0.1em;
           text-transform: uppercase;
           color: rgba(0, 0, 0, 0.78);
@@ -1837,12 +1837,12 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
         }
         .venue {
           font-weight: 800;
-          font-size: 2.2cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.2cqw);
           margin: 0 0 1cqw;
           color: rgba(0, 0, 0, 0.85);
         }
         .address {
-          font-size: 1.55cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.55cqw);
           color: rgba(0, 0, 0, 0.62);
           margin: 0;
           line-height: 1.45;
@@ -1853,25 +1853,25 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
         }
         @supports (font-size: 1cqw) {
           .topScript {
-            font-size: clamp(18px, 5.2cqw, 42px);
+            font-size: clamp(calc(18px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 5.2cqw), calc(42px * var(--card-type-scale, 1)));
           }
           .name {
-            font-size: clamp(22px, 7.2cqw, 54px);
+            font-size: clamp(calc(22px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 7.2cqw), calc(54px * var(--card-type-scale, 1)));
           }
           .dates {
-            font-size: clamp(10px, 1.7cqw, 14px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 1.7cqw), calc(14px * var(--card-type-scale, 1)));
           }
           .invite {
-            font-size: clamp(10px, 1.6cqw, 14px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 1.6cqw), calc(14px * var(--card-type-scale, 1)));
           }
           .serviceLine {
-            font-size: clamp(10px, 1.65cqw, 14px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 1.65cqw), calc(14px * var(--card-type-scale, 1)));
           }
           .venue {
-            font-size: clamp(14px, 2.2cqw, 20px);
+            font-size: clamp(calc(14px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.2cqw), calc(20px * var(--card-type-scale, 1)));
           }
           .address {
-            font-size: clamp(10px, 1.55cqw, 13px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 1.55cqw), calc(13px * var(--card-type-scale, 1)));
           }
         }
         @media print {
@@ -1890,7 +1890,7 @@ function BuddhistOrnateGold({ data, fonts, theme }: TemplateProps) {
 }
 
 function HinduSunriseBanner({ data, fonts, theme }: TemplateProps) {
-  const { name, dates, titleLine, subtitleLine, tribute, service, body, footer, notes, photoUrl } = data;
+  const { name, dates, titleLine, subtitleLine, tribute, service, body, notes, photoUrl } = data;
   const subtitleText = (titleLine || subtitleLine || tribute || 'Celebrating the life of').trim();
   const displayName = (name?.trim() || 'Rachelle Beaudry').trim();
   const [firstName, ...rest] = displayName.split(/\s+/);
@@ -1998,18 +1998,18 @@ function HinduSunriseBanner({ data, fonts, theme }: TemplateProps) {
           opacity: 0.8;
         }
         .subtitle {
-          font-size: 2.4cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.4cqw);
           color: rgba(0, 0, 0, 0.55);
           margin: 0 0 3.2cqw;
         }
         .firstName {
-          font-size: 7.6cqw;
+          font-size: calc(var(--card-type-scale, 1) * 7.6cqw);
           line-height: 1;
           margin: 0 0 1cqw;
           color: rgba(0, 0, 0, 0.86);
         }
         .lastName {
-          font-size: 4.8cqw;
+          font-size: calc(var(--card-type-scale, 1) * 4.8cqw);
           letter-spacing: 0.52em;
           text-indent: 0.52em;
           text-transform: uppercase;
@@ -2018,7 +2018,7 @@ function HinduSunriseBanner({ data, fonts, theme }: TemplateProps) {
         }
         .dates {
           font-weight: 500;
-          font-size: 2.1cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.1cqw);
           letter-spacing: 0.1em;
           text-transform: uppercase;
           margin: 0 0 2.2cqw;
@@ -2026,7 +2026,7 @@ function HinduSunriseBanner({ data, fonts, theme }: TemplateProps) {
         }
         .time {
           font-weight: 500;
-          font-size: 1.9cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.9cqw);
           letter-spacing: 0.14em;
           text-transform: uppercase;
           margin: 0;
@@ -2034,19 +2034,19 @@ function HinduSunriseBanner({ data, fonts, theme }: TemplateProps) {
         }
         @supports (font-size: 1cqw) {
           .subtitle {
-            font-size: clamp(11px, 2.4cqw, 16px);
+            font-size: clamp(calc(11px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.4cqw), calc(16px * var(--card-type-scale, 1)));
           }
           .firstName {
-            font-size: clamp(26px, 7.6cqw, 54px);
+            font-size: clamp(calc(26px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 7.6cqw), calc(54px * var(--card-type-scale, 1)));
           }
           .lastName {
-            font-size: clamp(18px, 4.8cqw, 34px);
+            font-size: clamp(calc(18px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 4.8cqw), calc(34px * var(--card-type-scale, 1)));
           }
           .dates {
-            font-size: clamp(10px, 2.1cqw, 14px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.1cqw), calc(14px * var(--card-type-scale, 1)));
           }
           .time {
-            font-size: clamp(10px, 1.9cqw, 13px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 1.9cqw), calc(13px * var(--card-type-scale, 1)));
           }
         }
         @media print {
@@ -2323,7 +2323,7 @@ function HinduWreathClassic({ data, fonts, theme }: TemplateProps) {
 
         .smallTop {
 
-          font-size: 2.15cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.15cqw);
 
           letter-spacing: 0.06em;
 
@@ -2337,7 +2337,7 @@ function HinduWreathClassic({ data, fonts, theme }: TemplateProps) {
 
         .script {
 
-          font-size: 9.6cqw;
+          font-size: calc(var(--card-type-scale, 1) * 9.6cqw);
 
           margin: 0 0 3.2cqw;
 
@@ -2389,7 +2389,7 @@ function HinduWreathClassic({ data, fonts, theme }: TemplateProps) {
 
           font-weight: 400;
 
-          font-size: 6.3cqw;
+          font-size: calc(var(--card-type-scale, 1) * 6.3cqw);
 
           margin: 0 0 1.2cqw;
 
@@ -2399,7 +2399,7 @@ function HinduWreathClassic({ data, fonts, theme }: TemplateProps) {
 
         .dates {
 
-          font-size: 1.85cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.85cqw);
 
           font-weight: 600;
 
@@ -2425,7 +2425,7 @@ function HinduWreathClassic({ data, fonts, theme }: TemplateProps) {
 
         .service {
 
-          font-size: 1.85cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.85cqw);
 
           font-weight: 600;
 
@@ -2441,7 +2441,7 @@ function HinduWreathClassic({ data, fonts, theme }: TemplateProps) {
 
         .place {
 
-          font-size: 2.55cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.55cqw);
 
           font-weight: 600;
 
@@ -2453,7 +2453,7 @@ function HinduWreathClassic({ data, fonts, theme }: TemplateProps) {
 
         .addr {
 
-          font-size: 1.75cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.75cqw);
 
           color: rgba(0, 0, 0, 0.7);
 
@@ -2475,19 +2475,19 @@ function HinduWreathClassic({ data, fonts, theme }: TemplateProps) {
 
           .smallTop {
 
-            font-size: clamp(12px, 2.15cqw, 16px);
+            font-size: clamp(calc(12px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.15cqw), calc(16px * var(--card-type-scale, 1)));
 
           }
 
           .script {
 
-            font-size: clamp(34px, 9.6cqw, 64px);
+            font-size: clamp(calc(34px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 9.6cqw), calc(64px * var(--card-type-scale, 1)));
 
           }
 
           .name {
 
-            font-size: clamp(20px, 6.3cqw, 40px);
+            font-size: clamp(calc(20px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 6.3cqw), calc(40px * var(--card-type-scale, 1)));
 
           }
 
@@ -2497,13 +2497,13 @@ function HinduWreathClassic({ data, fonts, theme }: TemplateProps) {
 
           .addr {
 
-            font-size: clamp(10px, 1.85cqw, 14px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 1.85cqw), calc(14px * var(--card-type-scale, 1)));
 
           }
 
           .place {
 
-            font-size: clamp(13px, 2.55cqw, 18px);
+            font-size: clamp(calc(13px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.55cqw), calc(18px * var(--card-type-scale, 1)));
 
           }
 
@@ -2552,10 +2552,6 @@ function InterfaithNoirArch({ data, fonts, theme }: TemplateProps) {
   const placeName = placeLines.shift() || 'Name Of Church';
 
   const addressText = placeLines.join(' ') || '123 Street Name City, State, 00000';
-
-  const portraitSrc =
-
-    photoUrl?.trim() || 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80';
 
   const photoStyles: CSSProperties | undefined = photoUrl ? { backgroundImage: `url(${photoUrl})` } : undefined;
 
@@ -2755,7 +2751,7 @@ function InterfaithNoirArch({ data, fonts, theme }: TemplateProps) {
 
         .smallTop {
 
-          font-size: 2.15cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.15cqw);
 
           letter-spacing: 0.06em;
 
@@ -2769,7 +2765,7 @@ function InterfaithNoirArch({ data, fonts, theme }: TemplateProps) {
 
         .script {
 
-          font-size: 9.6cqw;
+          font-size: calc(var(--card-type-scale, 1) * 9.6cqw);
 
           line-height: 1;
 
@@ -2815,7 +2811,7 @@ function InterfaithNoirArch({ data, fonts, theme }: TemplateProps) {
 
         .name {
 
-          font-size: 6.3cqw;
+          font-size: calc(var(--card-type-scale, 1) * 6.3cqw);
 
           margin: 0 0 1.2cqw;
 
@@ -2827,7 +2823,7 @@ function InterfaithNoirArch({ data, fonts, theme }: TemplateProps) {
 
           font-weight: 600;
 
-          font-size: 1.85cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.85cqw);
 
           letter-spacing: 0.12em;
 
@@ -2853,7 +2849,7 @@ function InterfaithNoirArch({ data, fonts, theme }: TemplateProps) {
 
           font-weight: 600;
 
-          font-size: 1.85cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.85cqw);
 
           letter-spacing: 0.1em;
 
@@ -2867,7 +2863,7 @@ function InterfaithNoirArch({ data, fonts, theme }: TemplateProps) {
 
         .place {
 
-          font-size: 2.55cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.55cqw);
 
           margin: 0 0 1cqw;
 
@@ -2877,7 +2873,7 @@ function InterfaithNoirArch({ data, fonts, theme }: TemplateProps) {
 
         .addr {
 
-          font-size: 1.75cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.75cqw);
 
           color: rgba(0, 0, 0, 0.7);
 
@@ -2891,19 +2887,19 @@ function InterfaithNoirArch({ data, fonts, theme }: TemplateProps) {
 
           .smallTop {
 
-            font-size: clamp(12px, 2.15cqw, 16px);
+            font-size: clamp(calc(12px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.15cqw), calc(16px * var(--card-type-scale, 1)));
 
           }
 
           .script {
 
-            font-size: clamp(34px, 9.6cqw, 64px);
+            font-size: clamp(calc(34px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 9.6cqw), calc(64px * var(--card-type-scale, 1)));
 
           }
 
           .name {
 
-            font-size: clamp(20px, 6.3cqw, 40px);
+            font-size: clamp(calc(20px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 6.3cqw), calc(40px * var(--card-type-scale, 1)));
 
           }
 
@@ -2913,13 +2909,13 @@ function InterfaithNoirArch({ data, fonts, theme }: TemplateProps) {
 
           .addr {
 
-            font-size: clamp(10px, 1.85cqw, 14px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 1.85cqw), calc(14px * var(--card-type-scale, 1)));
 
           }
 
           .place {
 
-            font-size: clamp(13px, 2.55cqw, 18px);
+            font-size: clamp(calc(13px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.55cqw), calc(18px * var(--card-type-scale, 1)));
 
           }
 
@@ -3197,7 +3193,7 @@ function InterfaithSkyDoves({ data, fonts, theme }: TemplateProps) {
 
         .topScript {
 
-          font-size: 5.2cqw;
+          font-size: calc(var(--card-type-scale, 1) * 5.2cqw);
 
           margin: 0 0 3cqw;
 
@@ -3241,7 +3237,7 @@ function InterfaithSkyDoves({ data, fonts, theme }: TemplateProps) {
 
         .name {
 
-          font-size: 7.2cqw;
+          font-size: calc(var(--card-type-scale, 1) * 7.2cqw);
 
           margin: 0 0 1.6cqw;
 
@@ -3251,7 +3247,7 @@ function InterfaithSkyDoves({ data, fonts, theme }: TemplateProps) {
 
         .dates {
 
-          font-size: 1.7cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.7cqw);
 
           font-weight: 700;
 
@@ -3267,7 +3263,7 @@ function InterfaithSkyDoves({ data, fonts, theme }: TemplateProps) {
 
         .invite {
 
-          font-size: 1.6cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.6cqw);
 
           line-height: 1.55;
 
@@ -3285,7 +3281,7 @@ function InterfaithSkyDoves({ data, fonts, theme }: TemplateProps) {
 
         .serviceLine {
 
-          font-size: 1.65cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.65cqw);
 
           font-weight: 800;
 
@@ -3301,7 +3297,7 @@ function InterfaithSkyDoves({ data, fonts, theme }: TemplateProps) {
 
         .venue {
 
-          font-size: 2.2cqw;
+          font-size: calc(var(--card-type-scale, 1) * 2.2cqw);
 
           font-weight: 800;
 
@@ -3313,7 +3309,7 @@ function InterfaithSkyDoves({ data, fonts, theme }: TemplateProps) {
 
         .address {
 
-          font-size: 1.55cqw;
+          font-size: calc(var(--card-type-scale, 1) * 1.55cqw);
 
           color: rgba(0, 0, 0, 0.62);
 
@@ -3337,43 +3333,43 @@ function InterfaithSkyDoves({ data, fonts, theme }: TemplateProps) {
 
           .topScript {
 
-            font-size: clamp(18px, 5.2cqw, 42px);
+            font-size: clamp(calc(18px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 5.2cqw), calc(42px * var(--card-type-scale, 1)));
 
           }
 
           .name {
 
-            font-size: clamp(22px, 7.2cqw, 54px);
+            font-size: clamp(calc(22px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 7.2cqw), calc(54px * var(--card-type-scale, 1)));
 
           }
 
           .dates {
 
-            font-size: clamp(10px, 1.7cqw, 14px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 1.7cqw), calc(14px * var(--card-type-scale, 1)));
 
           }
 
           .invite {
 
-            font-size: clamp(10px, 1.6cqw, 14px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 1.6cqw), calc(14px * var(--card-type-scale, 1)));
 
           }
 
           .serviceLine {
 
-            font-size: clamp(10px, 1.65cqw, 14px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 1.65cqw), calc(14px * var(--card-type-scale, 1)));
 
           }
 
           .venue {
 
-            font-size: clamp(14px, 2.2cqw, 20px);
+            font-size: clamp(calc(14px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 2.2cqw), calc(20px * var(--card-type-scale, 1)));
 
           }
 
           .address {
 
-            font-size: clamp(10px, 1.55cqw, 13px);
+            font-size: clamp(calc(10px * var(--card-type-scale, 1)), calc(var(--card-type-scale, 1) * 1.55cqw), calc(13px * var(--card-type-scale, 1)));
 
           }
 

@@ -28,6 +28,14 @@ type TemplateSection = {
   fontScale?: number;
 };
 
+type PosterImagePayload = {
+  dataUrl: string;
+  width: number;
+  height: number;
+  displayWidth?: number;
+  displayHeight?: number;
+};
+
 const defaultSectionLayout: Required<Pick<TemplateSection, 'marginTop' | 'marginBottom' | 'padding' | 'gap' | 'fontScale'>> = {
   marginTop: 12,
   marginBottom: 10,
@@ -83,6 +91,8 @@ type PdfPayload = {
   passingDate?: string;
   tributeSentence?: string;
   photoUrl?: string;
+  posterImage?: PosterImagePayload;
+  pdfTemplateId?: string;
 };
 
 type MemorialTemplate = {
@@ -122,6 +132,74 @@ const memorialTemplates: MemorialTemplate[] = [
     heroVariant: "crest",
     pattern: "soft-doves",
     noteBackground: "#fff7ec",
+  },
+  {
+    id: "lotus-mist",
+    name: "Lotus Mist",
+    background: "#fdf8f4",
+    panelBackground: "#fffdf8",
+    panelBorder: "#f7e6d7",
+    textColor: "#412f24",
+    accent: "#c97b4f",
+    secondary: "#8d5c3b",
+    heroBackground: "#ffffff",
+    heroBorder: "#f6d9c0",
+    ribbonColor: "#e9a96a",
+    doveColor: "#fdf4ea",
+    heroVariant: "crest",
+    pattern: "soft-doves",
+    noteBackground: "#fff7ef",
+  },
+  {
+    id: "sage-halo",
+    name: "Sage Halo",
+    background: "#f4f7f3",
+    panelBackground: "#ffffff",
+    panelBorder: "#dce7d7",
+    textColor: "#2e392f",
+    accent: "#5f8365",
+    secondary: "#6f8570",
+    heroBackground: "#ffffff",
+    heroBorder: "#cfe0d1",
+    ribbonColor: "#5c7f66",
+    doveColor: "#f8fbf7",
+    heroVariant: "ribbon",
+    pattern: "silver-lilies",
+    noteBackground: "#eef5ed",
+  },
+  {
+    id: "rose-dawn",
+    name: "Rose Dawn",
+    background: "#fff6f6",
+    panelBackground: "#fffdfd",
+    panelBorder: "#ffdce0",
+    textColor: "#40232b",
+    accent: "#c6566a",
+    secondary: "#9f4a5b",
+    heroBackground: "#ffffff",
+    heroBorder: "#fed5dc",
+    ribbonColor: "#d65c74",
+    doveColor: "#fff1f3",
+    heroVariant: "crest",
+    pattern: "soft-doves",
+    noteBackground: "#fff1f2",
+  },
+  {
+    id: "azure-paritta",
+    name: "Azure Paritta",
+    background: "#eef3fb",
+    panelBackground: "#ffffff",
+    panelBorder: "#d5e1fb",
+    textColor: "#1b273a",
+    accent: "#4667b8",
+    secondary: "#4b5f7d",
+    heroBackground: "#ffffff",
+    heroBorder: "#cdd9f4",
+    ribbonColor: "#3856a6",
+    doveColor: "#f6f9ff",
+    heroVariant: "ribbon",
+    pattern: "silver-lilies",
+    noteBackground: "#f4f7ff",
   },
   {
     id: "celestial-lilies",
@@ -200,12 +278,6 @@ const styles = StyleSheet.create({
     padding: 40,
     fontFamily: "Helvetica",
     position: "relative",
-  },
-  heroWrapper: {
-    borderRadius: 32,
-    borderWidth: 1.5,
-    padding: 24,
-    marginBottom: 20,
   },
   heroScript: {
     fontSize: 16,
@@ -302,6 +374,25 @@ const styles = StyleSheet.create({
     lineHeight: 1.5,
     marginTop: 6,
   },
+  posterWrapper: {
+    borderWidth: 1,
+    borderRadius: 28,
+    padding: 18,
+    marginBottom: 24,
+    alignItems: "center",
+  },
+  posterCaption: {
+    marginTop: 8,
+    fontSize: 10,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  posterFallback: {
+    borderWidth: 1,
+    borderRadius: 28,
+    padding: 24,
+    marginBottom: 24,
+  },
 });
 
 function parseLines(input?: string) {
@@ -395,6 +486,7 @@ type HeroSectionProps = {
   epitaph: string;
   ceremonyTitle: string;
   photoUrl?: string;
+  posterImage?: PosterImagePayload;
 };
 
 function HeroSection({ template, displayName, datesLine, epitaph, ceremonyTitle, photoUrl }: HeroSectionProps) {
@@ -506,52 +598,68 @@ function HeroSection({ template, displayName, datesLine, epitaph, ceremonyTitle,
   }
 }
 
-type PosterPageProps = {
+type PosterSectionProps = {
   template: MemorialTemplate;
   displayName: string;
   datesLine: string;
   epitaph: string;
   ceremonyTitle: string;
   photoUrl?: string;
+  posterImage?: PosterImagePayload;
 };
 
-function PosterPage({ template, displayName, datesLine, epitaph, ceremonyTitle, photoUrl }: PosterPageProps) {
-  const initials = displayName?.[0]?.toUpperCase() ?? "F";
-  const portrait = photoUrl?.trim().length ? (
-    <Image
-      src={photoUrl.trim()}
-      style={{ width: 220, height: 220, borderRadius: 110, objectFit: "cover", borderWidth: 4, borderColor: template.heroBorder }}
-    />
-  ) : (
-    <View
-      style={{
-        width: 220,
-        height: 220,
-        borderRadius: 110,
-        borderWidth: 4,
-        borderColor: template.heroBorder,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: template.doveColor,
-      }}
-    >
-      <Text style={{ fontSize: 72, fontWeight: 600, color: template.accent }}>{initials}</Text>
-    </View>
-  );
+function PosterSection({ template, displayName, datesLine, epitaph, ceremonyTitle, photoUrl, posterImage }: PosterSectionProps) {
+  const hasPosterImage = Boolean(posterImage && posterImage.dataUrl && posterImage.width > 0 && posterImage.height > 0);
+  if (hasPosterImage && posterImage) {
+    const baseWidth = posterImage.displayWidth ?? posterImage.width;
+    const baseHeight = posterImage.displayHeight ?? posterImage.height;
+    const fallbackAspect = posterImage.width > 0 ? posterImage.height / posterImage.width : 1;
+    const previewWidth = baseWidth > 0 ? baseWidth : posterImage.width;
+    const previewHeight = baseHeight > 0 ? baseHeight : previewWidth * fallbackAspect;
+    const PX_TO_PT = 72 / 96;
+    const rawWidth = Math.max(1, previewWidth * PX_TO_PT);
+    const rawHeight = Math.max(1, previewHeight * PX_TO_PT);
+    const pageMaxWidth = 520;
+    const scale = rawWidth > pageMaxWidth ? pageMaxWidth / rawWidth : 1;
+    const posterWidth = rawWidth * scale;
+    const posterHeight = rawHeight * scale;
+    return (
+      <View
+        style={[
+          styles.posterWrapper,
+          { borderColor: template.panelBorder, backgroundColor: template.panelBackground },
+        ]}
+      >
+        <Image
+          src={posterImage.dataUrl}
+          style={{
+            width: posterWidth,
+            height: posterHeight,
+            borderRadius: 28,
+            borderWidth: 4,
+            borderColor: template.panelBorder,
+          }}
+        />
+      </View>
+    );
+  }
 
   return (
-    <Page size="A4" style={[styles.page, { backgroundColor: template.background, paddingTop: 80, paddingBottom: 60 }]}>
-      <DecorativeLayer template={template} />
-      <View style={{ alignItems: "center", textAlign: "center" }}>
-        <Text style={[styles.heroScript, { color: template.secondary }]}>In loving memory of</Text>
-        <View style={{ marginTop: 24 }}>{portrait}</View>
-        <Text style={[styles.heroTitle, { color: template.textColor, marginTop: 24 }]}>{displayName}</Text>
-        {datesLine ? <Text style={[styles.heroSubtitle, { color: template.secondary }]}>{datesLine}</Text> : null}
-        <Text style={[styles.heroSummary, { color: template.textColor, marginTop: 10 }]}>{epitaph}</Text>
-        <View style={{ marginTop: 18, borderTopWidth: 1, borderColor: template.panelBorder, width: 200 }} />
-        <Text style={{ marginTop: 12, fontSize: 11, color: template.secondary }}>{ceremonyTitle}</Text>
-      </View>
-    </Page>
+    <View
+      style={[
+        styles.posterFallback,
+        { backgroundColor: template.heroBackground, borderColor: template.heroBorder },
+      ]}
+    >
+      <HeroSection
+        template={template}
+        displayName={displayName}
+        datesLine={datesLine}
+        epitaph={epitaph}
+        ceremonyTitle={ceremonyTitle}
+        photoUrl={photoUrl}
+      />
+    </View>
   );
 }
 
@@ -574,6 +682,7 @@ type OrderDocumentProps = {
   passingDate?: string;
   tributeSentence?: string;
   photoUrl?: string;
+  posterImage?: PosterImagePayload;
 };
 
 function MemorialDocument({
@@ -591,6 +700,7 @@ function MemorialDocument({
   passingDate,
   tributeSentence,
   photoUrl,
+  posterImage,
 }: OrderDocumentProps) {
   const displayName = honoreeName?.trim().length ? honoreeName.trim() : title;
   const datesLine = [birthDate?.trim(), passingDate?.trim()].filter(Boolean).join(" ? ");
@@ -609,16 +719,15 @@ function MemorialDocument({
     <Document>
       <Page size="A4" style={[styles.page, { backgroundColor: template.background }]}>
         <DecorativeLayer template={template} />
-        <View style={[styles.heroWrapper, { backgroundColor: template.heroBackground, borderColor: template.heroBorder }]}>
-          <HeroSection
-            template={template}
-            displayName={displayName}
-            datesLine={datesLine}
-            epitaph={epitaph}
-            ceremonyTitle={ceremonyTitle}
-            photoUrl={photoUrl}
-          />
-        </View>
+        <PosterSection
+          template={template}
+          displayName={displayName}
+          datesLine={datesLine}
+          epitaph={epitaph}
+          ceremonyTitle={ceremonyTitle}
+          photoUrl={photoUrl}
+          posterImage={posterImage}
+        />
 
         <View style={columnStyles}>
           <View
@@ -713,15 +822,6 @@ function MemorialDocument({
           <Text style={[styles.noteText, { color: template.textColor }]}>{noteLine}</Text>
         </View>
       </Page>
-
-      <PosterPage
-        template={template}
-        displayName={displayName}
-        datesLine={datesLine}
-        epitaph={epitaph}
-        ceremonyTitle={ceremonyTitle}
-        photoUrl={photoUrl}
-      />
     </Document>
   );
 }
@@ -765,7 +865,20 @@ export async function POST(request: Request) {
     eulogies: parseLines(payload.eulogies),
   };
 
-  const template = memorialTemplates[Math.floor(Math.random() * memorialTemplates.length)];
+  const preferredTemplateIds = [
+    "serene-gold",
+    "lotus-mist",
+    "sage-halo",
+    "rose-dawn",
+    "azure-paritta",
+    "celestial-lilies",
+  ];
+  const preferredTemplates = memorialTemplates.filter((entry) => preferredTemplateIds.includes(entry.id));
+  const templatePool = preferredTemplates.length > 0 ? preferredTemplates : memorialTemplates;
+  const requestedTemplate = payload.pdfTemplateId
+    ? memorialTemplates.find((entry) => entry.id === payload.pdfTemplateId)
+    : undefined;
+  const template = requestedTemplate ?? templatePool[Math.floor(Math.random() * templatePool.length)];
 
   let pdfBuffer: Uint8Array;
   try {
@@ -785,6 +898,7 @@ export async function POST(request: Request) {
         passingDate={payload.passingDate?.trim()}
         tributeSentence={payload.tributeSentence?.trim()}
         photoUrl={payload.photoUrl?.trim()}
+        posterImage={payload.posterImage}
       />
     );
   } catch (error) {

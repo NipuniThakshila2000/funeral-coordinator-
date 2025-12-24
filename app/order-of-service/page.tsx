@@ -738,8 +738,47 @@ const builderSteps = [
   },
   {
     step: "04",
-    title: "Download and share instantly",
-    description: "Generate a print ready PDF for clergy, family, and vendors in seconds.",
+    title: "Pick a PDF design & download",
+    description: "Select a memorial booklet theme, then export a print-ready PDF for clergy and family.",
+  },
+];
+
+const pdfThemeOptions = [
+  {
+    id: "serene-gold",
+    name: "Serene Gold",
+    summary: "Ivory parchment with gilded crest details.",
+    accent: "from-amber-50 to-amber-100",
+  },
+  {
+    id: "lotus-mist",
+    name: "Lotus Mist",
+    summary: "Lotus blush gradients inspired by dana ceremonies.",
+    accent: "from-rose-50 to-orange-50",
+  },
+  {
+    id: "sage-halo",
+    name: "Sage Halo",
+    summary: "Cool sage panels with soft halo dividers.",
+    accent: "from-emerald-50 to-lime-50",
+  },
+  {
+    id: "rose-dawn",
+    name: "Rose Dawn",
+    summary: "Rosy dawn highlights for remembrance programmes.",
+    accent: "from-rose-50 to-pink-50",
+  },
+  {
+    id: "azure-paritta",
+    name: "Azure Paritta",
+    summary: "Blue-grey gradients, ideal for Paritta chanting booklets.",
+    accent: "from-sky-50 to-indigo-50",
+  },
+  {
+    id: "celestial-lilies",
+    name: "Celestial Lilies",
+    summary: "Celestial lilies pattern with navy typography.",
+    accent: "from-slate-50 to-blue-50",
   },
 ];
 
@@ -780,6 +819,14 @@ const defaultSectionLayout: Required<Pick<TemplateSection, 'marginTop' | 'margin
 };
 
 type SectionLayoutField = keyof typeof defaultSectionLayout;
+
+type PosterImagePayload = {
+  dataUrl: string;
+  width: number;
+  height: number;
+  displayWidth: number;
+  displayHeight: number;
+};
 
 function normalizeSection(section: TemplateSection): TemplateSection {
   const getNumber = (value: number | undefined, fallback: number) =>
@@ -825,6 +872,7 @@ export default function OrderOfServicePage() {
   const [structureSections, setStructureSections] = useState<TemplateSection[]>([]);
   const [structureEditorOpen, setStructureEditorOpen] = useState(true);
   const [activeStructureIndex, setActiveStructureIndex] = useState<number | null>(null);
+  const [selectedPdfTheme, setSelectedPdfTheme] = useState<string>(pdfThemeOptions[0].id);
 
 
   const previousFaithRef = useRef<string | "">("");
@@ -1141,6 +1189,14 @@ export default function OrderOfServicePage() {
     setStatusMessage(null);
 
     try {
+      let posterImagePayload: PosterImagePayload | undefined;
+      if (selectedMemorialVariant && memorialPreviewRef.current?.captureImage) {
+        try {
+          posterImagePayload = await memorialPreviewRef.current.captureImage();
+        } catch (error) {
+          console.warn("Could not capture memorial card for PDF", error);
+        }
+      }
       const payload = {
         faith: selectedFaith,
         faithLabel: selectedFaithDefinition.label,
@@ -1158,6 +1214,8 @@ export default function OrderOfServicePage() {
         eulogies: formValues.eulogies.trim(),
         notes: formValues.notes.trim(),
         structure: structureSections,
+        posterImage: posterImagePayload,
+        pdfTemplateId: selectedPdfTheme,
       };
 
       const response = await fetch("/api/pdf/order-of-service", {
@@ -1190,8 +1248,8 @@ export default function OrderOfServicePage() {
     }
   };
   return (
-    <div className="space-y-16 px-4 py-16 sm:px-6">
-      <div className="mx-auto grid max-w-4xl gap-00">
+    <div className="space-y-16 px-4 py-16 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-10">
         <section className="space-y-6">
           <span className="tag-chip">Order of service</span>
           <h1 className="text-balance text-4xl font-semibold text-neutral-900 sm:text-5xl">
@@ -1225,7 +1283,7 @@ export default function OrderOfServicePage() {
         <section className="glass-panel relative flex w-full flex-col overflow-hidden rounded-[2.5rem] border border-neutral-200 bg-white p-4 shadow-glow sm:p-8">
           <span className="absolute -left-16 top-0 h-48 w-48 rounded-full bg-black/10 blur-3xl" aria-hidden />
           <span className="absolute -right-20 bottom-0 h-48 w-48 rounded-full bg-black/5 blur-3xl" aria-hidden />
-          <form onSubmit={submit} className="relative mx-auto w-full max-w-3xl space-y-8 text-sm text-neutral-700">
+          <form onSubmit={submit} className="relative mx-auto w-full space-y-8 text-sm text-neutral-700">
             <fieldset className="space-y-4" aria-label="Faith tradition">
               <span className="tag-chip">Step 1 - Faith tradition</span>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -1584,57 +1642,78 @@ export default function OrderOfServicePage() {
                       Select a faith tradition to reveal memorial card templates.
                     </p>
                   )}
-                  <div className="max-w-3xl mx-auto">
+                  <div className="mx-auto w-full max-w-4xl">
                     <p className="text-sm font-semibold text-neutral-900">Memorial card preview</p>
                     <p className="mt-1 text-xs text-neutral-600">
                       This live template mirrors the downloadable 665x960 JPG and updates as you personalise the card
                       details.
                     </p>
-                    <div className="mt-5 flex flex-col items-center gap-3">
-                        <div className="w-full max-w-[665px] flex flex-col items-center justify-center overflow-hidden">
-                        <MemorialCardPreview
-                          ref={memorialPreviewRef}
-                          variant={selectedMemorialVariant}
-                          name={formValues.honoreeName}
-                          birthDate={formValues.birthDate}
-                          passingDate={formValues.passingDate}
-                          tributeSentence={formValues.tributeSentence}
-                          title={formValues.title}
-                          readings={formValues.readings}
-                          music={formValues.music}
-                          eulogies={formValues.eulogies}
-                          notes={formValues.notes}
-                          photoUrl={formValues.photoUrl}
-                          themeOverrides={{
-                            background: cardEditorSettings.background,
-                            text: cardEditorSettings.text,
-                            accent: cardEditorSettings.accent,
-                          }}
-                          fontSelection={cardEditorSettings.fonts}
-                          typeScale={cardEditorSettings.fontScale}
-                          lineHeight={cardEditorSettings.lineHeight}
-                          previewWidth={320}
-                        />
+                    <div className="mt-5 flex flex-col items-center gap-5">
+                      <div className="w-full">
+                        <div className="mx-auto flex w-full max-w-[520px] flex-col items-center justify-center overflow-hidden rounded-3xl border border-neutral-200 bg-white/80 p-4 shadow-sm md:max-w-[600px]">
+                          <MemorialCardPreview
+                            ref={memorialPreviewRef}
+                            variant={selectedMemorialVariant}
+                            name={formValues.honoreeName}
+                            birthDate={formValues.birthDate}
+                            passingDate={formValues.passingDate}
+                            tributeSentence={formValues.tributeSentence}
+                            title={formValues.title}
+                            readings={formValues.readings}
+                            music={formValues.music}
+                            eulogies={formValues.eulogies}
+                            notes={formValues.notes}
+                            photoUrl={formValues.photoUrl}
+                            themeOverrides={{
+                              background: cardEditorSettings.background,
+                              text: cardEditorSettings.text,
+                              accent: cardEditorSettings.accent,
+                            }}
+                            fontSelection={cardEditorSettings.fonts}
+                            typeScale={cardEditorSettings.fontScale}
+                            lineHeight={cardEditorSettings.lineHeight}
+                            previewWidth={400}
+                          />
+                        </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={downloadMemorialCard}
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-800 transition hover:border-neutral-400 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-60"
-                        disabled={!selectedMemorialVariant || cardDownloadStatus === "loading"}
-                      >
-                        {cardDownloadStatus === "loading" ? "Preparing JPG..." : "Download JPG (665x960)"}
-                      </button>
-                      {cardDownloadMessage ? (
-                        <p
-                          className={`text-xs ${
-                            cardDownloadStatus === "error"
-                              ? "text-rose-600"
-                              : "text-emerald-700"
-                          }`}
-                        >
-                          {cardDownloadMessage}
-                        </p>
-                      ) : null}
+                      <div className="w-full max-w-[520px] space-y-4 md:max-w-[600px]">
+                        <div className="rounded-2xl border border-neutral-200 bg-white/80 p-4">
+                          <label className="flex flex-col gap-2 text-xs font-medium text-neutral-600">
+                            Font size
+                            <input
+                              type="range"
+                              min={85}
+                              max={125}
+                              step={1}
+                              value={Math.round(cardEditorSettings.fontScale * 100)}
+                              onChange={handleFontScaleChange}
+                              disabled={!selectedMemorialVariant}
+                            />
+                            <span className="text-[11px] text-neutral-500">{Math.round(cardEditorSettings.fontScale * 100)}%</span>
+                          </label>
+                        </div>
+                        <div className="flex flex-col gap-3 sm:flex-row">
+                          <button
+                            type="button"
+                            onClick={downloadMemorialCard}
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-800 transition hover:border-neutral-400 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={!selectedMemorialVariant || cardDownloadStatus === "loading"}
+                          >
+                            {cardDownloadStatus === "loading" ? "Preparing JPG..." : "Download JPG (665x960)"}
+                          </button>
+                        </div>
+                        {cardDownloadMessage ? (
+                          <p
+                            className={`text-xs ${
+                              cardDownloadStatus === "error"
+                                ? "text-rose-600"
+                                : "text-emerald-700"
+                            }`}
+                          >
+                            {cardDownloadMessage}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                   <div className="mt-4 space-y-4 rounded-3xl border border-neutral-200 bg-white/90 p-5 max-w-4xl mx-auto">
@@ -1724,19 +1803,6 @@ export default function OrderOfServicePage() {
                     </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <label className="flex flex-col gap-2 text-xs font-medium text-neutral-600">
-                        Overall scale
-                        <input
-                          type="range"
-                          min={90}
-                          max={115}
-                          step={1}
-                          value={Math.round(cardEditorSettings.fontScale * 100)}
-                          onChange={handleFontScaleChange}
-                          disabled={!selectedMemorialVariant}
-                        />
-                        <span className="text-[11px] text-neutral-500">{Math.round(cardEditorSettings.fontScale * 100)}%</span>
-                      </label>
-                      <label className="flex flex-col gap-2 text-xs font-medium text-neutral-600">
                         Line spacing
                         <input
                           type="range"
@@ -1792,11 +1858,50 @@ export default function OrderOfServicePage() {
                   value={formValues.notes}
                   onChange={handleFieldChange("notes")}
                 />
-              </div>
             </div>
+          </div>
+
+            <fieldset className="space-y-4" aria-label="PDF design theme">
+              <span className="tag-chip">Step 4 - PDF design</span>
+              <p className="text-xs text-neutral-600">
+                Pick the memorial booklet style that best matches your ceremony. This choice controls the colours, typography,
+                and flourishes of the exported PDF.
+              </p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {pdfThemeOptions.map((theme) => (
+                  <label
+                    key={theme.id}
+                    className={`group flex cursor-pointer flex-col gap-2 rounded-3xl border p-4 transition ${
+                      selectedPdfTheme === theme.id
+                        ? "border-neutral-900 bg-white shadow-sm"
+                        : "border-neutral-200 bg-white/80 hover:border-neutral-400"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="pdfTheme"
+                      value={theme.id}
+                      checked={selectedPdfTheme === theme.id}
+                      onChange={() => setSelectedPdfTheme(theme.id)}
+                      className="sr-only"
+                    />
+                    <div className={`h-2 w-full rounded-full bg-gradient-to-r ${theme.accent}`} aria-hidden />
+                    <p className="text-sm font-semibold text-neutral-900">{theme.name}</p>
+                    <p className="text-xs text-neutral-600">{theme.summary}</p>
+                    <span
+                      className={`text-[11px] font-semibold uppercase tracking-[0.3em] ${
+                        selectedPdfTheme === theme.id ? "text-neutral-900" : "text-neutral-500"
+                      }`}
+                    >
+                      {selectedPdfTheme === theme.id ? "Selected" : "Tap to apply"}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
 
             <div className="space-y-4">
-              <span className="tag-chip">Step 4 - Review and download</span>
+              <span className="tag-chip">Step 5 - Review and download</span>
               {structureSections.length > 0 ? (
                 <div className="rounded-3xl border border-neutral-200 bg-white p-5">
                   <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
@@ -1887,7 +1992,7 @@ export default function OrderOfServicePage() {
         </section>
       </div>
 
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto w-full max-w-6xl">
         <CanvaPanel />
       </div>
     </div>

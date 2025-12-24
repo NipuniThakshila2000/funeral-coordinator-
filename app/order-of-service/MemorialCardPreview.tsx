@@ -51,8 +51,17 @@ type FontFamilies = {
   sans: string;
 };
 
+export type MemorialCardImageCapture = {
+  dataUrl: string;
+  width: number;
+  height: number;
+  displayWidth: number;
+  displayHeight: number;
+};
+
 export type MemorialCardPreviewHandle = {
   download: () => Promise<void>;
+  captureImage: () => Promise<MemorialCardImageCapture>;
 };
 
 export type MemorialCardPreviewProps = {
@@ -176,6 +185,22 @@ const DEFAULT_FONT_SELECTION: FontSelection = {
 
 const FALLBACK_PHOTO = "/memorial-card/portrait-placeholder.svg";
 
+
+async function blobToDataUrl(blob: Blob, errorMessage = "Could not convert blob") {
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+      } else {
+        reject(new Error(errorMessage));
+      }
+    };
+    reader.onerror = () => reject(new Error(errorMessage));
+    reader.readAsDataURL(blob);
+  });
+}
+
 function formatDate(value: string): string | null {
   if (!value) return null;
   const parsed = new Date(value);
@@ -263,18 +288,7 @@ async function inlinePortraitElement(target: HTMLElement) {
       throw new Error("Portrait response was not ok");
     }
     const blob = await response.blob();
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === "string") {
-          resolve(reader.result);
-        } else {
-          reject(new Error("Could not read portrait"));
-        }
-      };
-      reader.onerror = () => reject(new Error("Could not read portrait"));
-      reader.readAsDataURL(blob);
-    });
+    const dataUrl = await blobToDataUrl(blob, "Could not read portrait");
     if (target instanceof HTMLImageElement) {
       target.setAttribute("src", dataUrl);
       await waitForImageLoad(target);
@@ -292,14 +306,66 @@ async function inlinePortraitElement(target: HTMLElement) {
   }
 }
 
+const fontDataUrlCache = new Map<string, string>();
 let documentStylesCache: string | null = null;
+let documentStylesPromise: Promise<string> | null = null;
 
-function getDocumentStylesForDownload() {
+async function inlineExternalFontSources(cssText: string) {
+  if (typeof window === "undefined" || !cssText) {
+    return cssText;
+  }
+  const FONT_URL_REGEX = /url\((['"\s]?)(https?:[^)]+?\.(?:woff2?|woff|ttf|otf)(?:\?[^)"']*)?)\1\)/gi;
+  const fontUrls = new Set<string>();
+  let match: RegExpExecArray | null;
+  while ((match = FONT_URL_REGEX.exec(cssText)) !== null) {
+    const url = match[2];
+    if (url) {
+      fontUrls.add(url);
+    }
+  }
+  if (!fontUrls.size) {
+    return cssText;
+  }
+  await Promise.all(
+    Array.from(fontUrls).map(async (url) => {
+      if (fontDataUrlCache.has(url)) {
+        return;
+      }
+      try {
+        const response = await fetch(url, { mode: "cors" });
+        if (!response.ok) {
+          throw new Error("Font response was not ok");
+        }
+        const blob = await response.blob();
+        const dataUrl = await blobToDataUrl(blob, "Could not inline font");
+        fontDataUrlCache.set(url, dataUrl);
+      } catch (error) {
+        console.warn("Could not inline font for memorial card download", url, error);
+      }
+    })
+  );
+  return cssText.replace(FONT_URL_REGEX, (fullMatch, quote, url) => {
+    if (!url) {
+      return fullMatch;
+    }
+    const dataUrl = fontDataUrlCache.get(url);
+    if (!dataUrl) {
+      return fullMatch;
+    }
+    const quoteChar = quote?.trim() ?? "";
+    return `url(${quoteChar}${dataUrl}${quoteChar})`;
+  });
+}
+
+async function getDocumentStylesForDownload() {
   if (typeof document === "undefined") {
     return "";
   }
   if (documentStylesCache) {
     return documentStylesCache;
+  }
+  if (documentStylesPromise) {
+    return documentStylesPromise;
   }
   const cssChunks: string[] = [];
   const appendCss = (value?: string | null) => {
@@ -307,50 +373,54 @@ function getDocumentStylesForDownload() {
       cssChunks.push(value);
     }
   };
-  for (const sheet of Array.from(document.styleSheets)) {
-    const cssSheet = sheet as CSSStyleSheet;
-    try {
-      const rules = cssSheet.cssRules;
-      if (!rules) {
+  documentStylesPromise = (async () => {
+    for (const sheet of Array.from(document.styleSheets)) {
+      const cssSheet = sheet as CSSStyleSheet;
+      try {
+        const rules = cssSheet.cssRules;
+        if (!rules) {
+          continue;
+        }
+        for (const rule of Array.from(rules)) {
+          const cssText = (rule as CSSStyleRule)?.cssText;
+          if (cssText) {
+            cssChunks.push(cssText);
+          }
+        }
         continue;
+      } catch (error) {
+        console.warn("Skipping stylesheet while preparing memorial card download", error);
+        appendCss((cssSheet.ownerNode as HTMLElement | null)?.textContent);
       }
-      for (const rule of Array.from(rules)) {
-        const cssText = (rule as CSSStyleRule)?.cssText;
-        if (cssText) {
-          cssChunks.push(cssText);
-        }
-      }
-      continue;
-    } catch (error) {
-      console.warn("Skipping stylesheet while preparing memorial card download", error);
-      appendCss((cssSheet.ownerNode as HTMLElement | null)?.textContent);
     }
-  }
-  for (const inlineStyle of Array.from(document.querySelectorAll<HTMLStyleElement>("style"))) {
-    appendCss(inlineStyle.textContent);
-  }
-  const newlineChar = '\n';
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const cssText = cssChunks.join(newlineChar);
-  const normalizedCss = origin
-    ? cssText.replace(/url\((['"\s]?)(\/[^)]+)\1\)/g, (match, quote, pathSegment) => {
-        if (!pathSegment.startsWith('http')) {
-          const normalized = `${origin}${pathSegment}`;
-          const q = quote || '';
-          return `url(${q}${normalized}${q})`;
-        }
-        return match;
-      })
-    : cssText;
-  documentStylesCache = normalizedCss;
-  return documentStylesCache;
+    for (const inlineStyle of Array.from(document.querySelectorAll<HTMLStyleElement>("style"))) {
+      appendCss(inlineStyle.textContent);
+    }
+    const newlineChar = '\n';
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const cssText = cssChunks.join(newlineChar);
+    const normalizedCss = origin
+      ? cssText.replace(/url\((['"\s]?)(\/[^)]+)\1\)/g, (match, quote, pathSegment) => {
+          if (!pathSegment.startsWith('http')) {
+            const normalized = `${origin}${pathSegment}`;
+            const q = quote || '';
+            return `url(${q}${normalized}${q})`;
+          }
+          return match;
+        })
+      : cssText;
+    const cssWithFonts = await inlineExternalFontSources(normalizedCss);
+    documentStylesCache = cssWithFonts;
+    return cssWithFonts;
+  })();
+  return documentStylesPromise;
 }
 
-function prependDocumentStylesForDownload(target: HTMLElement) {
+async function prependDocumentStylesForDownload(target: HTMLElement) {
   if (typeof document === "undefined") {
     return;
   }
-  const cssText = getDocumentStylesForDownload();
+  const cssText = await getDocumentStylesForDownload();
   if (!cssText) {
     return;
   }
@@ -484,16 +554,16 @@ export const MemorialCardPreview = forwardRef<MemorialCardPreviewHandle, Memoria
     const sansFontEntry = sansFontRegistry[selection.sans] ?? sansFontRegistry.inter;
     const sansFontClass = sansFontEntry.font.className;
     const sansFontFamily = sansFontEntry.font.style.fontFamily;
-    const fonts: FontClasses = {
+    const fonts: FontClasses = useMemo(() => ({
       script: scriptFontClass,
       serif: serifFontClass,
       sans: sansFontClass,
-    };
-    const fontFamilies: FontFamilies = {
+    }), [scriptFontClass, serifFontClass, sansFontClass]);
+    const fontFamilies: FontFamilies = useMemo(() => ({
       script: scriptFontFamily,
       serif: serifFontFamily,
       sans: sansFontFamily,
-    };
+    }), [scriptFontFamily, serifFontFamily, sansFontFamily]);
     const baseTheme = designMeta?.defaultTheme ?? { background: '#ffffff', text: '#1a1a1a', accent: '#d6b56b' };
     const theme: CardTheme = {
       background: props.themeOverrides?.background ?? baseTheme.background,
@@ -501,44 +571,116 @@ export const MemorialCardPreview = forwardRef<MemorialCardPreviewHandle, Memoria
       accent: props.themeOverrides?.accent ?? baseTheme.accent,
     };
 
-    const downloadCard = useCallback(async () => {
+    const prepareCardClone = useCallback(async () => {
+
       if (!props.variant) {
+
         throw new Error("Select a memorial card template first");
+
       }
+
       if (!cardRef.current || !designMeta) {
+
         throw new Error("Memorial card preview is not ready");
+
       }
+
       if (document.fonts?.ready) {
+
         try {
+
           await document.fonts.ready;
+
         } catch (error) {
+
           console.warn("Fonts did not finish loading before download", error);
+
         }
+
       }
+
+
 
       const clone = cardRef.current.cloneNode(true) as HTMLElement;
-      prependFontClassStyles(clone, fonts, fontFamilies);
-      clone.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
-      clone.style.width = `${designMeta.downloadSize.width}px`;
-      clone.style.height = `${designMeta.downloadSize.height}px`;
-      prependDocumentStylesForDownload(clone);
-      await inlinePortraitSource(clone);
-      const jpegBlob = await convertNodeToJpeg(clone, designMeta.downloadSize.width, designMeta.downloadSize.height);
-      const downloadUrl = URL.createObjectURL(jpegBlob);
-      const anchor = document.createElement("a");
-      const safeName = slugify(data.name) || "memorial-card";
-      anchor.download = `${safeName}-${designMeta.downloadSize.width}x${designMeta.downloadSize.height}.jpg`;
-      anchor.href = downloadUrl;
-      anchor.click();
-      URL.revokeObjectURL(downloadUrl);
-    }, [data.name, designMeta, fontFamilies.script, fontFamilies.serif, fontFamilies.sans, fonts.script, fonts.serif, fonts.sans, props.variant]);
 
-    useImperativeHandle(ref, () => ({ download: downloadCard }), [downloadCard]);
+      prependFontClassStyles(clone, fonts, fontFamilies);
+
+      clone.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
+
+      const previewRect = cardRef.current.getBoundingClientRect();
+      const fallbackWidth = designMeta.downloadSize.width;
+      const fallbackHeight = designMeta.downloadSize.height;
+      const logicalWidth = previewRect.width || fallbackWidth;
+      const logicalHeight = previewRect.height || (fallbackHeight * (logicalWidth / fallbackWidth));
+      const deviceScale = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+      const targetWidth = Math.max(1, Math.round(logicalWidth * deviceScale));
+      const targetHeight = Math.max(1, Math.round(logicalHeight * deviceScale));
+      clone.style.width = `${targetWidth}px`;
+      clone.style.height = `${targetHeight}px`;
+
+      await prependDocumentStylesForDownload(clone);
+
+      await inlinePortraitSource(clone);
+
+      return { clone, width: targetWidth, height: targetHeight, displayWidth: logicalWidth, displayHeight: logicalHeight };
+
+    }, [designMeta, fontFamilies, fonts, props.variant]);
+
+
+
+    const captureCardBlob = useCallback(async () => {
+
+      const { clone, width, height, displayWidth, displayHeight } = await prepareCardClone();
+
+      const jpegBlob = await convertNodeToJpeg(clone, width, height);
+
+      return { blob: jpegBlob, width, height, displayWidth, displayHeight };
+
+    }, [prepareCardClone]);
+
+
+
+    const captureCardImage = useCallback(async () => {
+
+      const capture = await captureCardBlob();
+
+      const dataUrl = await blobToDataUrl(capture.blob, "Could not capture memorial card");
+
+      return { dataUrl, width: capture.width, height: capture.height, displayWidth: capture.displayWidth, displayHeight: capture.displayHeight };
+
+    }, [captureCardBlob]);
+
+
+
+    const downloadCard = useCallback(async () => {
+
+      const { blob, width, height } = await captureCardBlob();
+
+      const downloadUrl = URL.createObjectURL(blob);
+
+      const anchor = document.createElement("a");
+
+      const safeName = slugify(data.name) || "memorial-card";
+
+      anchor.download = `${safeName}-${width}x${height}.jpg`;
+
+      anchor.href = downloadUrl;
+
+      anchor.click();
+
+      URL.revokeObjectURL(downloadUrl);
+
+    }, [captureCardBlob, data.name]);
+
+
+
+    useImperativeHandle(ref, () => ({ download: downloadCard, captureImage: captureCardImage }), [captureCardImage, downloadCard]);
+
+
 
     const typeScale = props.typeScale ?? 1;
     const previewWidth = props.previewWidth ?? 665;
     const clampedScale = Math.min(Math.max(typeScale, 0.85), 1.25);
-    const shouldScale = Math.abs(clampedScale - 1) > 0.001;
     const requestedLineHeight = props.lineHeight ?? 1.4;
     const shouldOverrideLineHeight = Math.abs(requestedLineHeight - 1.4) > 0.001;
     const cardCanvasStyle: (CSSProperties & {
@@ -546,19 +688,15 @@ export const MemorialCardPreview = forwardRef<MemorialCardPreviewHandle, Memoria
       ['--card-bg']?: string;
       ['--card-text']?: string;
       ['--card-accent']?: string;
+      ['--card-type-scale']?: string;
     }) = {};
-    if (shouldScale) {
-      cardCanvasStyle.transform = `scale(${clampedScale})`;
-      cardCanvasStyle.transformOrigin = 'top center';
-      cardCanvasStyle.width = `${100 / clampedScale}%`;
-      cardCanvasStyle.height = `${100 / clampedScale}%`;
-    }
     if (shouldOverrideLineHeight) {
       cardCanvasStyle['--editor-line-height'] = requestedLineHeight.toString();
     }
     cardCanvasStyle['--card-bg'] = theme.background;
     cardCanvasStyle['--card-text'] = theme.text;
     cardCanvasStyle['--card-accent'] = theme.accent;
+    cardCanvasStyle['--card-type-scale'] = clampedScale.toString();
     cardCanvasStyle.backgroundColor = 'transparent';
     cardCanvasStyle.color = theme.text;
     const canvasClassName = shouldOverrideLineHeight ? 'card-canvas lineheight-active' : 'card-canvas';
